@@ -40,28 +40,37 @@ func parseSheetXLSX(rows [][]string, groupName string) ([]domain.Event, error) {
 	events := make([]domain.Event, 0)
 	for columnIndex := range columnsCount {
 		var lastFoundDate *domain.Date = nil
+
+		dayBuffer := ""
 		for rowIndex := range rows {
 			if columnIndex >= len(rows[rowIndex]) {
 				continue
 			}
 			content := rows[rowIndex][columnIndex]
 			content = strings.TrimSpace(content)
-			if content == "" {
-				continue
-			}
+
 			date, err := domain.NewDate(content)
 			if err == nil {
+				if lastFoundDate == nil {
+					dayBuffer = ""
+					lastFoundDate = &date
+					continue
+				}
+
+				// parse everything from last day into events
+				evs := parseDayIntoEvents(dayBuffer, groupName, *lastFoundDate)
+				events = append(events, evs...)
+
+				dayBuffer = ""
 				lastFoundDate = &date
 				continue
 			}
+
 			if lastFoundDate == nil {
 				continue
 			}
-			event, err := domain.NewEvent(*lastFoundDate, groupName, content)
-			if err != nil {
-				continue
-			}
-			events = append(events, event)
+
+			dayBuffer += "\n" + content
 		}
 	}
 
