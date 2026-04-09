@@ -2,42 +2,41 @@ package main
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/xuri/excelize/v2"
+	"github.com/hurtki/school-events-bot/internal/parser"
 )
 
-const xlsxURL = "https://docs.google.com/spreadsheets/d/1WAqZExNwrM9w2p3IbOkS6ZMosKioh66h/export?format=xlsx"
+// const xlsxURL = "https://docs.google.com/spreadsheets/d/1WAqZExNwrM9w2p3IbOkS6ZMosKioh66h/export?format=xlsx"
 
 func main() {
-	// res, err := http.Get(xlsxURL)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// f, _ := excelize.OpenReader(res.Body)
-	// fmt.Println(f.GetSheetList())
-
-	f, err := excelize.OpenFile("tbl.xlsx")
+	f, err := os.Open("tbl.xlsx")
+	if err != nil {
+		fmt.Println("err when opening", err)
+		return
+	}
+	sc, err := parser.ParseXLSX(f)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	levels := f.GetSheetList()
-	for _, l := range levels {
-		rows, _ := f.GetRows(l)
-		for _, r := range rows {
-			for _, e := range r {
-				if hasHebrew(e) {
-					fmt.Printf("%s ", reverse(e))
-				} else {
-					fmt.Printf("%s ", e)
-				}
-			}
-			fmt.Println()
+	fmt.Printf("Scanned %d events\n", len(sc.Events))
+	for _, ev := range sc.Events {
+		text := ""
+		if hasHebrew(ev.Text) {
+			text = reverse(ev.Text)
+		} else {
+			text = ev.Text
 		}
-		fmt.Println("=======")
-	}
 
+		fmt.Printf("%d.%d.%d [%s]: %s\n",
+			ev.Date.Day,
+			ev.Date.Month,
+			ev.Date.Year,
+			reverse(ev.Group),
+			text,
+		)
+	}
 }
 
 func hasHebrew(s string) bool {
