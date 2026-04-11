@@ -14,21 +14,18 @@ var (
 
 type DocsFetcher struct {
 	cl *http.Client
-
-	documentID string
 }
 
-func NewDocsFetcher(documentID string, cl *http.Client) *DocsFetcher {
+func NewDocsFetcher(cl *http.Client) *DocsFetcher {
 	return &DocsFetcher{
-		cl:         cl,
-		documentID: documentID,
+		cl: cl,
 	}
 }
 
-func (f *DocsFetcher) FetchXLSX(ctx context.Context) (io.ReadCloser, error) {
+func (f *DocsFetcher) FetchXLSX(ctx context.Context, documentID string) (io.ReadCloser, error) {
 	req, err := http.NewRequestWithContext(ctx,
 		"GET",
-		baseSpreadsheetURL+f.documentID+xlsxExportSuffix,
+		baseSpreadsheetURL+documentID+xlsxExportSuffix,
 		nil,
 	)
 	if err != nil {

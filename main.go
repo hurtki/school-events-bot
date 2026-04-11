@@ -26,7 +26,7 @@ func main() {
 		return
 	}
 
-	docFetcher := spreadsheets.NewDocsFetcher(appCfg.SpreadsheetsDocumentID, http.DefaultClient)
+	docFetcher := spreadsheets.NewDocsFetcher(http.DefaultClient)
 
 	bot, err := bot.NewBot(botCfg)
 	if err != nil {

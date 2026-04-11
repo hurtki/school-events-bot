@@ -10,7 +10,7 @@ import (
 )
 
 type XLSXScheduleDocumentFetcher interface {
-	FetchXLSX(ctx context.Context) (io.ReadCloser, error)
+	FetchXLSX(ctx context.Context, docID string) (io.ReadCloser, error)
 }
 
 type ScheduleService struct {
@@ -25,7 +25,7 @@ func NewScheduleService(fetcher XLSXScheduleDocumentFetcher, docID string) *Sche
 }
 
 func (s *ScheduleService) GetSchedule(ctx context.Context) (domain.Schedule, error) {
-	xlsx, err := s.fetcher.FetchXLSX(ctx)
+	xlsx, err := s.fetcher.FetchXLSX(ctx, s.docID)
 	if err != nil {
 		return domain.Schedule{}, fmt.Errorf("can't fetch xlsx: %w", err)
 	}

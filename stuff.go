@@ -15,7 +15,7 @@ import (
 func main1(fetcher *spreadsheets.DocsFetcher, cfg config.AppConfig) {
 	ctx := context.Background()
 
-	xlsx, err := fetcher.FetchXLSX(ctx)
+	xlsx, err := fetcher.FetchXLSX(ctx, cfg.SpreadsheetsDocumentID)
 	defer func() {
 		if err := xlsx.Close(); err != nil {
 			fmt.Println("coulnd't close xlsx doc")
