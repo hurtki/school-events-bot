@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hurtki/school-events-bot/internal/app/schedule"
 	"github.com/hurtki/school-events-bot/internal/bot"
 	"github.com/hurtki/school-events-bot/internal/config"
 	"github.com/hurtki/school-events-bot/internal/infrastructure/spreadsheets"
@@ -33,6 +34,10 @@ func main() {
 		return
 	}
 	_ = bot.NotifyAboutUpdate(context.Background())
+
+	scheduleService := schedule.NewScheduleService(docFetcher)
+
+	_, _ = scheduleService.GetSchedule(context.Background())
 
 	main1(docFetcher)
 }
