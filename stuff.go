@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 	"slices"
-	"strings"
 	"time"
 
+	"github.com/hurtki/school-events-bot/internal/config"
 	"github.com/hurtki/school-events-bot/internal/domain"
 	"github.com/hurtki/school-events-bot/internal/infrastructure/spreadsheets"
 	"github.com/hurtki/school-events-bot/internal/parser"
 )
 
-func main1(fetcher *spreadsheets.DocsFetcher) {
+func main1(fetcher *spreadsheets.DocsFetcher, cfg config.AppConfig) {
 	ctx := context.Background()
 
 	xlsx, err := fetcher.FetchXLSX(ctx)
@@ -21,7 +21,8 @@ func main1(fetcher *spreadsheets.DocsFetcher) {
 			fmt.Println("coulnd't close xlsx doc")
 		}
 	}()
-	sc, err := parser.ParseXLSX(xlsx)
+	p, _ := parser.NewParser(xlsx, cfg.SpreadsheetsDocumentID)
+	sc, err := p.ParseXLSX()
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -44,7 +45,7 @@ func main1(fetcher *spreadsheets.DocsFetcher) {
 	fmt.Println("sorted in", time.Since(start).String())
 	for _, ev := range sc.Events {
 		// if !strings.Contains(ev.Group, "א") {
-		if !strings.Contains(ev.Group, "ב") {
+		if !(ev.Group == domain.TwelfthGradeGroup) {
 			continue
 		}
 		text := ""
@@ -54,13 +55,14 @@ func main1(fetcher *spreadsheets.DocsFetcher) {
 			text = ev.Text
 		}
 
-		fmt.Printf("[%d.%d.%d] [%s] [%s] \n%s",
+		fmt.Printf("[%d.%d.%d] [%s] [%s] \n%ssource link: %s\n",
 			ev.Date.Day,
 			ev.Date.Month,
 			ev.Date.Year,
-			reverseStringKeepLines(ev.Group),
+			ev.Group.String(),
 			ev.Type.String(),
 			text,
+			ev.SourceURL,
 		)
 	}
 

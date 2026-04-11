@@ -12,9 +12,18 @@ const (
 	bagrutTest           = "בגרות"
 )
 
+var (
+	baseSpreadsheetURL = "https://docs.google.com/spreadsheets/d/"
+)
+
 // parseDayIntoEvents gets all entries for one day.
 // Contains core logic of how to separate and compose events.
-func parseDayIntoEvents(day, group string, date domain.Date) []domain.Event {
+func parseDayIntoEvents(
+	day string,
+	group domain.Group,
+	date domain.Date,
+	daySrcURL string,
+) []domain.Event {
 
 	// we accumulate text and event type of events
 	// for example
@@ -30,7 +39,7 @@ func parseDayIntoEvents(day, group string, date domain.Date) []domain.Event {
 	// if new type is other than was before
 	flushIfType := func(incoming domain.EventType) {
 		if text != "" && et != incoming {
-			if event, err := domain.NewEvent(date, group, text, et); err == nil {
+			if event, err := domain.NewEvent(date, group, text, et, daySrcURL); err == nil {
 				events = append(events, event)
 			}
 			text = ""
@@ -40,7 +49,7 @@ func parseDayIntoEvents(day, group string, date domain.Date) []domain.Event {
 	// "saves" accumulated data ( if there is) strictly
 	flush := func() {
 		if text != "" {
-			if event, err := domain.NewEvent(date, group, text, et); err == nil {
+			if event, err := domain.NewEvent(date, group, text, et, daySrcURL); err == nil {
 				events = append(events, event)
 			}
 			text = ""

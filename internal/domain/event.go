@@ -26,18 +26,21 @@ type Event struct {
 	Date Date
 
 	Type  EventType
-	Group string
+	Group Group
 	Text  string
+
+	SourceURL string
 }
 
-func NewEvent(date Date, gr string, text string, et EventType) (Event, error) {
+func NewEvent(date Date, gr Group, text string, et EventType, sourceURL string) (Event, error) {
 	if et > 2 {
 		return Event{}, fmt.Errorf("not existing event type")
 	}
 	return Event{
-		Date:  date,
-		Group: gr,
-		Text:  text,
-		Type:  et,
+		Date:      date,
+		Group:     gr,
+		Text:      text,
+		Type:      et,
+		SourceURL: sourceURL,
 	}, nil
 }

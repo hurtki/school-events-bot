@@ -35,9 +35,9 @@ func main() {
 	}
 	_ = bot.NotifyAboutUpdate(context.Background())
 
-	scheduleService := schedule.NewScheduleService(docFetcher)
+	scheduleService := schedule.NewScheduleService(docFetcher, appCfg.SpreadsheetsDocumentID)
 
 	_, _ = scheduleService.GetSchedule(context.Background())
 
-	main1(docFetcher)
+	main1(docFetcher, appCfg)
 }

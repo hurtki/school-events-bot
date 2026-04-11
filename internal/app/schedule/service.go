@@ -15,9 +15,10 @@ type XLSXScheduleDocumentFetcher interface {
 
 type ScheduleService struct {
 	fetcher XLSXScheduleDocumentFetcher
+	docID   string
 }
 
-func NewScheduleService(fetcher XLSXScheduleDocumentFetcher) *ScheduleService {
+func NewScheduleService(fetcher XLSXScheduleDocumentFetcher, docID string) *ScheduleService {
 	return &ScheduleService{
 		fetcher: fetcher,
 	}
@@ -34,9 +35,9 @@ func (s *ScheduleService) GetSchedule(ctx context.Context) (domain.Schedule, err
 			fmt.Println("can't close xlsx")
 		}
 	}()
-	schedule, err := parser.ParseXLSX(xlsx)
+	p, err := parser.NewParser(xlsx, s.docID)
 	if err != nil {
 		return domain.Schedule{}, fmt.Errorf("can't parse xlsx: %w", err)
 	}
-	return schedule, nil
+	return p.ParseXLSX()
 }
