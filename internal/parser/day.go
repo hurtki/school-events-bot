@@ -76,6 +76,8 @@ func parseDayIntoEvents(
 		default:
 			if strings.TrimSpace(line) == "" {
 				flush()
+			} else if text != "" {
+				text += line + "\n"
 			}
 		}
 	}

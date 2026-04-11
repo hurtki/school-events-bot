@@ -23,9 +23,10 @@ func NewDocsFetcher(cl *http.Client) *DocsFetcher {
 }
 
 func (f *DocsFetcher) FetchXLSX(ctx context.Context, documentID string) (io.ReadCloser, error) {
+	url := baseSpreadsheetURL + documentID + xlsxExportSuffix
 	req, err := http.NewRequestWithContext(ctx,
 		"GET",
-		baseSpreadsheetURL+documentID+xlsxExportSuffix,
+		url,
 		nil,
 	)
 	if err != nil {
@@ -36,7 +37,7 @@ func (f *DocsFetcher) FetchXLSX(ctx context.Context, documentID string) (io.Read
 		return nil, fmt.Errorf("can't execute request: %w", err)
 	}
 	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("not expected status code: %d", res.StatusCode)
+		return nil, fmt.Errorf("not expected status code: %d url: %s", res.StatusCode, url)
 	}
 	return res.Body, err
 }

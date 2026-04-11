@@ -20,7 +20,7 @@ func CompareSchedules(old, current Schedule) ScheduleUpdate {
 		}
 	}
 
-	// Check what was added (is in old, but not in old)
+	// Check what was added (is in new, but not in old)
 	for _, e := range current.Events {
 		if !oldMap[e] {
 			update.Added = append(update.Added, e)

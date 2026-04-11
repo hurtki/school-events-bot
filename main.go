@@ -8,6 +8,7 @@ import (
 	"github.com/hurtki/school-events-bot/internal/app/schedule"
 	"github.com/hurtki/school-events-bot/internal/bot"
 	"github.com/hurtki/school-events-bot/internal/config"
+	"github.com/hurtki/school-events-bot/internal/domain"
 	"github.com/hurtki/school-events-bot/internal/infrastructure/spreadsheets"
 )
 
@@ -33,11 +34,16 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	_ = bot.NotifyAboutUpdate(context.Background())
 
 	scheduleService := schedule.NewScheduleService(docFetcher, appCfg.SpreadsheetsDocumentID)
 
-	_, _ = scheduleService.GetSchedule(context.Background())
+	sc, err := scheduleService.GetSchedule(context.Background())
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	_ = bot.NotifyAboutUpdate(context.Background(), domain.ScheduleUpdate{Added: []domain.Event{sc.Events[0]}, Deleted: sc.Events[2:5]})
 
 	main1(docFetcher, appCfg)
 }

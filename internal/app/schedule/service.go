@@ -21,6 +21,7 @@ type ScheduleService struct {
 func NewScheduleService(fetcher XLSXScheduleDocumentFetcher, docID string) *ScheduleService {
 	return &ScheduleService{
 		fetcher: fetcher,
+		docID:   docID,
 	}
 }
 
