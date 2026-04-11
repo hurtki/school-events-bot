@@ -1,26 +1,27 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"slices"
 	"strings"
 	"time"
 
 	"github.com/hurtki/school-events-bot/internal/domain"
+	"github.com/hurtki/school-events-bot/internal/infrastructure/spreadsheets"
 	"github.com/hurtki/school-events-bot/internal/parser"
 )
 
-const xlsxURL = "https://docs.google.com/spreadsheets/d/1WAqZExNwrM9w2p3IbOkS6ZMosKioh66h/export?format=xlsx"
+func main1(fetcher *spreadsheets.DocsFetcher) {
+	ctx := context.Background()
 
-func main1() {
-	// f, err := os.Open("tbl.xlsx")
-	// if err != nil {
-	// 	fmt.Println("err when opening", err)
-	// 	return
-	// }
-	res, _ := http.Get(xlsxURL)
-	sc, err := parser.ParseXLSX(res.Body)
+	xlsx, err := fetcher.FetchXLSX(ctx)
+	defer func() {
+		if err := xlsx.Close(); err != nil {
+			fmt.Println("coulnd't close xlsx doc")
+		}
+	}()
+	sc, err := parser.ParseXLSX(xlsx)
 	if err != nil {
 		fmt.Println(err)
 		return

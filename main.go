@@ -3,22 +3,36 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hurtki/school-events-bot/internal/bot"
 	"github.com/hurtki/school-events-bot/internal/config"
+	"github.com/hurtki/school-events-bot/internal/infrastructure/spreadsheets"
 )
 
 func main() {
-	botCfg, err := config.LoadBotConfig(config.EnvFileSource)
+	envSource := config.EnvFileSource
+
+	appCfg, err := config.LoadAppConfig(envSource)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+
+	botCfg, err := config.LoadBotConfig(envSource)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	docFetcher := spreadsheets.NewDocsFetcher(appCfg.SpreadsheetsDocumentID, http.DefaultClient)
+
 	bot, err := bot.NewBot(botCfg)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	err = bot.NotifyAboutUpdate(context.Background())
-	fmt.Println(err)
+	_ = bot.NotifyAboutUpdate(context.Background())
+
+	main1(docFetcher)
 }

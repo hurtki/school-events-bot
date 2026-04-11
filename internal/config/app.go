@@ -7,21 +7,12 @@ import (
 	"github.com/DeanPDX/dotconfig"
 )
 
-type LoadSource uint8
-
-const (
-	EnviromentVariablesSource LoadSource = iota
-	EnvFileSource
-)
-
-type BotConfig struct {
-	// bot that app will use to operate channel
-	TelegramBotToken string `env:"TELEGRAM_BOT_TOKEN,required"`
-	// channel, where bot will send updates
-	UpdatesChannel int64 `env:"UPDATES_TELEGRAM_CHANNEL_ID,required"`
+type AppConfig struct {
+	// ID of google spreadsheets document with schedule
+	SpreadsheetsDocumentID string `env:"SCHEDULE_DOCUMENT_ID,required"`
 }
 
-func LoadBotConfig(src LoadSource) (BotConfig, error) {
+func LoadAppConfig(src LoadSource) (AppConfig, error) {
 	switch src {
 	case EnviromentVariablesSource:
 		var buf bytes.Buffer
@@ -32,9 +23,9 @@ func LoadBotConfig(src LoadSource) (BotConfig, error) {
 			buf.WriteByte('\n')
 		}
 
-		return dotconfig.FromReader[BotConfig](&buf)
+		return dotconfig.FromReader[AppConfig](&buf)
 	case EnvFileSource:
-		return dotconfig.FromFileName[BotConfig](".env")
+		return dotconfig.FromFileName[AppConfig](".env")
 	default:
 		panic("wrong load source option")
 	}
