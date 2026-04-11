@@ -30,22 +30,13 @@ func main1(fetcher *spreadsheets.DocsFetcher, cfg config.AppConfig) {
 	fmt.Printf("Scanned %d events\n", len(sc.Events))
 
 	start := time.Now()
-	slices.SortFunc(sc.Events, func(a domain.Event, b domain.Event) int {
-		if a.Date.Year != b.Date.Year {
-			return a.Date.Year - b.Date.Year
-		}
-		if a.Date.Month != b.Date.Month {
-			return a.Date.Month - b.Date.Month
-		}
-		if a.Date.Day != b.Date.Day {
-			return a.Date.Day - b.Date.Day
-		}
-		return 0
+	slices.SortFunc(sc.Events, func(a, b domain.Event) int {
+		return a.Date.Compare(b.Date)
 	})
 	fmt.Println("sorted in", time.Since(start).String())
 	for _, ev := range sc.Events {
 		// if !strings.Contains(ev.Group, "א") {
-		if !(ev.Group == domain.TwelfthGradeGroup) {
+		if !(ev.Group == domain.EleventhGradeGroup) {
 			continue
 		}
 		text := ""
@@ -55,10 +46,8 @@ func main1(fetcher *spreadsheets.DocsFetcher, cfg config.AppConfig) {
 			text = ev.Text
 		}
 
-		fmt.Printf("[%d.%d.%d] [%s] [%s] \n%ssource link: %s\n",
-			ev.Date.Day,
-			ev.Date.Month,
-			ev.Date.Year,
+		fmt.Printf("[%s] [%s] [%s] \n%ssource link: %s\n",
+			ev.Date.String(),
 			ev.Group.String(),
 			ev.Type.String(),
 			text,

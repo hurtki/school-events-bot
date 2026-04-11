@@ -2,38 +2,41 @@ package domain
 
 import (
 	"errors"
-	"strconv"
 	"strings"
+	"time"
 )
 
 type Date struct {
-	Year  int
-	Month int
-	Day   int
+	t time.Time
 }
 
 var (
 	ErrWrongFormat = errors.New("wrong date format")
 )
 
-// day.month.year format
+const dateLayout = "2.1.2006"
+
 func NewDate(d string) (Date, error) {
 	d = strings.TrimSpace(d)
-	parts := strings.Split(d, ".")
-	if len(parts) != 3 {
+
+	parsedTime, err := time.Parse(dateLayout, d)
+	if err != nil {
 		return Date{}, ErrWrongFormat
 	}
-	day, err := strconv.Atoi(parts[0])
-	if err != nil || day < 1 || day > 31 {
-		return Date{}, ErrWrongFormat
+
+	return Date{t: parsedTime}, nil
+}
+
+func (d Date) String() string {
+	return d.t.Format(dateLayout)
+}
+
+func (d Date) Compare(other Date) int {
+	if d.t.Before(other.t) {
+		return -1
 	}
-	month, err := strconv.Atoi(parts[1])
-	if err != nil || month < 1 || month > 12 {
-		return Date{}, ErrWrongFormat
+	if d.t.After(other.t) {
+		return 1
 	}
-	year, err := strconv.Atoi(parts[2])
-	if err != nil || year < 2000 || year > 2100 {
-		return Date{}, ErrWrongFormat
-	}
-	return Date{Year: year, Month: month, Day: day}, nil
+	return 0
 }
