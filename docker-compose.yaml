@@ -1,0 +1,11 @@
+services:
+  main:
+    build: ./
+    container_name: school-events-notifier
+    restart: always
+    env_file: .env
+    volumes:
+      - schedule-storage:/var/www/storage/
+volumes:
+  schedule-storage:
+    name: schedule-storage
