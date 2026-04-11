@@ -3,13 +3,19 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/hurtki/school-events-bot/internal/app/schedule"
+	"github.com/hurtki/school-events-bot/internal/app/workers"
 	"github.com/hurtki/school-events-bot/internal/bot"
 	"github.com/hurtki/school-events-bot/internal/config"
-	"github.com/hurtki/school-events-bot/internal/domain"
 	"github.com/hurtki/school-events-bot/internal/infrastructure/spreadsheets"
+	repository "github.com/hurtki/school-events-bot/internal/repository/schedule"
 )
 
 func main() {
@@ -20,6 +26,10 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	logger.Info("starting service")
 
 	botCfg, err := config.LoadBotConfig(envSource)
 	if err != nil {
@@ -37,13 +47,23 @@ func main() {
 
 	scheduleService := schedule.NewScheduleService(docFetcher, appCfg.SpreadsheetsDocumentID)
 
-	sc, err := scheduleService.GetSchedule(context.Background())
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	scheduleRepo := repository.NewFileScheduleRepository(appCfg.JsonScheduleFileRepositoryPath)
 
-	_ = bot.NotifyAboutUpdate(context.Background(), domain.ScheduleUpdate{Added: []domain.Event{sc.Events[0]}, Deleted: sc.Events[2:5]})
+	poller := workers.NewSchedulePoller(
+		logger,
+		scheduleService,
+		bot,
+		appCfg.SchedulePollerInterval,
+		scheduleRepo,
+	)
+	poller.Start()
+	// graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+	quitCtx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	poller.Close(quitCtx)
 
-	main1(docFetcher, appCfg)
+	// main1(docFetcher, appCfg)
+	cancel()
 }

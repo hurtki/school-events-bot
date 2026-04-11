@@ -7,7 +7,7 @@ import (
 )
 
 type Date struct {
-	t time.Time
+	T time.Time
 }
 
 var (
@@ -24,18 +24,18 @@ func NewDate(d string) (Date, error) {
 		return Date{}, ErrWrongFormat
 	}
 
-	return Date{t: parsedTime}, nil
+	return Date{T: parsedTime}, nil
 }
 
 func (d Date) String() string {
-	return d.t.Format(dateLayout)
+	return d.T.Format(dateLayout)
 }
 
 func (d Date) Compare(other Date) int {
-	if d.t.Before(other.t) {
+	if d.T.Before(other.T) {
 		return -1
 	}
-	if d.t.After(other.t) {
+	if d.T.After(other.T) {
 		return 1
 	}
 	return 0
