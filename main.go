@@ -1,29 +1,21 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
-	"github.com/hurtki/school-events-bot/internal/app/schedule"
-	"github.com/hurtki/school-events-bot/internal/app/workers"
-	"github.com/hurtki/school-events-bot/internal/bot"
 	"github.com/hurtki/school-events-bot/internal/config"
 	"github.com/hurtki/school-events-bot/internal/infrastructure/spreadsheets"
-	repository "github.com/hurtki/school-events-bot/internal/repository/schedule"
 )
 
 func main() {
-	envSource := config.EnviromentVariablesSource
+	envSource := config.EnvFileSource
 
 	appCfg, err := config.LoadAppConfig(envSource)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("can't load config", err)
 		return
 	}
 
@@ -31,39 +23,39 @@ func main() {
 
 	logger.Info("starting service")
 
-	botCfg, err := config.LoadBotConfig(envSource)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	// botCfg, err := config.LoadBotConfig(envSource)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
 
 	docFetcher := spreadsheets.NewDocsFetcher(http.DefaultClient)
 
-	bot, err := bot.NewBot(botCfg)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	// bot, err := bot.NewBot(botCfg)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+	//
+	// scheduleService := schedule.NewScheduleService(docFetcher, appCfg.SpreadsheetsDocumentID)
+	//
+	// scheduleRepo := repository.NewFileScheduleRepository(appCfg.JsonScheduleFileRepositoryPath)
 
-	scheduleService := schedule.NewScheduleService(docFetcher, appCfg.SpreadsheetsDocumentID)
+	// poller := workers.NewSchedulePoller(
+	// 	logger,
+	// 	scheduleService,
+	// 	bot,
+	// 	appCfg.SchedulePollerInterval,
+	// 	scheduleRepo,
+	// )
+	// poller.Start()
+	// // graceful shutdown
+	// quit := make(chan os.Signal, 1)
+	// signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	// <-quit
+	// quitCtx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	// poller.Close(quitCtx)
 
-	scheduleRepo := repository.NewFileScheduleRepository(appCfg.JsonScheduleFileRepositoryPath)
-
-	poller := workers.NewSchedulePoller(
-		logger,
-		scheduleService,
-		bot,
-		appCfg.SchedulePollerInterval,
-		scheduleRepo,
-	)
-	poller.Start()
-	// graceful shutdown
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
-	<-quit
-	quitCtx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	poller.Close(quitCtx)
-
-	// main1(docFetcher, appCfg)
-	cancel()
+	main1(docFetcher, appCfg)
+	// cancel()
 }

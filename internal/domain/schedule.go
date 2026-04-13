@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"slices"
+	"time"
+)
 
 type Schedule struct {
 	Events []Event
@@ -12,48 +15,54 @@ func NewSchedule(evs []Event) (Schedule, error) {
 	}, nil
 }
 
-// GetUpcomingEventsSummary exports upcoming events for every group
-// If neededTypes were given, they will be returned, in other case all types of events will be returned
-func (s Schedule) GetUpcomingEventsSummary(first int, neededTypes ...EventType) UpcomingEventsSummary {
+// GetUpcomingEventsSummary returns the nearest events for each group,
+// prioritizing the specified priorityTypes until the "first" limit is reached.
+// If priority events are insufficient, it fills the remaining slots with other upcoming events.
+func (s Schedule) GetUpcomingEventsSummary(first int, priorityTypes ...EventType) UpcomingEventsSummary {
+	prs := make(map[EventType]struct{})
+	for _, p := range priorityTypes {
+		prs[p] = struct{}{}
+	}
+
 	events := make(map[Group][]Event)
 
-	neededTypesFat := func(neededTypes []EventType) map[EventType]struct{} {
-		res := make(map[EventType]struct{})
-		for _, nt := range neededTypes {
-			res[nt] = struct{}{}
-		}
-		return res
-	}(neededTypes)
-
 	for _, e := range s.Events {
-		// check if type's event is needed
-
-		// if event's date is before now, it's not upcoming
 		if e.Date.T.Before(time.Now()) {
 			continue
 		}
-
-		evs, ok := events[e.Group]
-		if !ok {
-			events[e.Group] = []Event{e}
-			continue
-		}
-
-		if len(evs) < first {
-			evs = append(evs, e)
-			events[e.Group] = evs
-			continue
-		}
-
-		// if some events is before or at the same date, ignoring it
-		if evs[len(evs)-1].Date.T.Compare(e.Date.T) < 1 {
-			continue
-		}
-
-		for i := len(evs) - 1; i >= 0; i-- {
-			existingE := evs[i]
-
-		}
-
+		events[e.Group] = append(events[e.Group], e)
 	}
+
+	for gr := range events {
+		slices.SortFunc(events[gr], func(a Event, b Event) int {
+			return a.Date.Compare(b.Date)
+		})
+
+		grEvs := make([]Event, 0, first)
+
+		for _, e := range events[gr] {
+			if len(grEvs) >= first {
+				break
+			}
+			if _, ok := prs[e.Type]; ok {
+				grEvs = append(grEvs, e)
+			}
+		}
+		if len(grEvs) < first {
+			for _, e := range events[gr] {
+				if len(grEvs) >= first {
+					break
+				}
+				if _, ok := prs[e.Type]; !ok {
+					grEvs = append(grEvs, e)
+				}
+			}
+		}
+		events[gr] = grEvs
+		slices.SortFunc(events[gr], func(a Event, b Event) int {
+			return a.Date.Compare(b.Date)
+		})
+	}
+
+	return NewUpcomingEventsSummary(events)
 }

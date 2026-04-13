@@ -35,24 +35,42 @@ func main1(fetcher *spreadsheets.DocsFetcher, cfg config.AppConfig) {
 	})
 	fmt.Println("sorted in", time.Since(start).String())
 	for _, ev := range sc.Events {
-		// if !strings.Contains(ev.Group, "א") {
-		if !(ev.Group == domain.EleventhGradeGroup) {
+		if ev.Group != domain.TenthGradeGroup {
 			continue
 		}
-		text := ""
-		if hasHebrew(ev.Text) {
-			text = reverseStringKeepLines(ev.Text)
-		} else {
-			text = ev.Text
-		}
+		// text := ""
+		// if hasHebrew(ev.Text) {
+		// 	text = reverseStringKeepLines(ev.Text)
+		// } else {
+		// 	text = ev.Text
+		// }
 
-		fmt.Printf("[%s] [%s] [%s] \n%ssource link: %s\n",
-			ev.Date.String(),
-			ev.Group.String(),
-			ev.Type.String(),
-			text,
-			ev.SourceURL,
-		)
+		// fmt.Printf("[%s] [%s] [%s] \n%ssource link: %s\n",
+		// 	ev.Date.String(),
+		// 	ev.Group.String(),
+		// 	ev.Type.String(),
+		// 	text,
+		// 	ev.SourceURL,
+		// )
+	}
+
+	upcomingEvents := sc.GetUpcomingEventsSummary(5, domain.BagrutTestEvent, domain.ProtectionBagrutTestEvent)
+	for gr, evs := range upcomingEvents.Events {
+		fmt.Printf("========= group: %s =========\n", gr.String())
+		for _, ev := range evs {
+			text := ""
+			if hasHebrew(ev.Text) {
+				text = reverseStringKeepLines(ev.Text)
+			} else {
+				text = ev.Text
+			}
+			fmt.Printf("[%s] [%s] [%s] \n%s",
+				ev.Date.String(),
+				ev.Group.String(),
+				ev.Type.String(),
+				text,
+			)
+		}
 	}
 
 }
