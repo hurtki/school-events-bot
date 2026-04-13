@@ -16,29 +16,21 @@ type SchedulePoller struct {
 	bot      *bot.Bot
 	interval time.Duration
 	logger   *slog.Logger
-	repo     ScheduleRepository
 
 	ctx    context.Context
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
 }
 
-type ScheduleRepository interface {
-	GetLastSchedule(ctx context.Context) (*domain.Schedule, error)
-	SaveSchedule(ctx context.Context, s domain.Schedule) error
-}
-
-func NewSchedulePoller(logger *slog.Logger, service *schedule.ScheduleService, bot *bot.Bot, interval time.Duration, repo ScheduleRepository) *SchedulePoller {
+func NewSchedulePoller(logger *slog.Logger, service *schedule.ScheduleService, interval time.Duration) *SchedulePoller {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &SchedulePoller{
 		service:  service,
-		bot:      bot,
 		interval: interval,
 		logger:   logger.With("service", "schedule-poller"),
 		ctx:      ctx,
 		cancel:   cancel,
 		wg:       sync.WaitGroup{},
-		repo:     repo,
 	}
 }
 

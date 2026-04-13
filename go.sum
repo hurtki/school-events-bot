@@ -1,5 +1,7 @@
 github.com/DeanPDX/dotconfig v1.0.2 h1:0goI90g2FeBb4l/8GKnyhgXADmhTRF+A7oTGtDL+zug=
 github.com/DeanPDX/dotconfig v1.0.2/go.mod h1:18zbUTCrXlYeQqJmrtjBVtNFTUPEfqTzdrf8dh1kHNc=
+github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef h1:2JGTg6JapxP9/R33ZaagQtAM4EkkSYnIAlOG5EI8gkM=
+github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef/go.mod h1:JS7hed4L1fj0hXcyEejnW57/7LCetXggd+vwrRnYeII=
 github.com/mitchellh/hashstructure v1.1.0 h1:P6P1hdjqAAknpY/M1CGipelZgp+4y9ja9kmUZPXP+H0=
 github.com/mitchellh/hashstructure v1.1.0/go.mod h1:xUDAozZz0Wmdiufv0uyhnHkUTN6/6d8ulp4AwfLKrmA=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=

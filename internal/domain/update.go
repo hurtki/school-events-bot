@@ -38,3 +38,7 @@ type ScheduleUpdate struct {
 func (u ScheduleUpdate) IsEmpty() bool {
 	return len(u.Added) == 0 && len(u.Deleted) == 0
 }
+
+type ScheduleUpdateEvent struct {
+	Update ScheduleUpdate
+}

@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+	test()
+	return
 	envSource := config.EnvFileSource
 
 	appCfg, err := config.LoadAppConfig(envSource)

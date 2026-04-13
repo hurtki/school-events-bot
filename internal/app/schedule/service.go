@@ -13,19 +13,40 @@ type XLSXScheduleDocumentFetcher interface {
 	FetchXLSX(ctx context.Context, docID string) (io.ReadCloser, error)
 }
 
-type ScheduleService struct {
-	fetcher XLSXScheduleDocumentFetcher
-	docID   string
+type ScheduleRepository interface {
+	GetLastSchedule(ctx context.Context) (*domain.Schedule, error)
+	SaveSchedule(ctx context.Context, s domain.Schedule) error
 }
 
-func NewScheduleService(fetcher XLSXScheduleDocumentFetcher, docID string) *ScheduleService {
+type ScheduleUpdatesEventBus interface {
+	Publish(context.Context, domain.ScheduleUpdate)
+}
+
+type ScheduleService struct {
+	fetcher XLSXScheduleDocumentFetcher
+	repo    ScheduleRepository
+	docID   string
+	evBus   ScheduleUpdatesEventBus
+}
+
+func NewScheduleService(fetcher XLSXScheduleDocumentFetcher, docID string, repo ScheduleRepository, evBus ScheduleUpdatesEventBus) *ScheduleService {
 	return &ScheduleService{
 		fetcher: fetcher,
 		docID:   docID,
+		repo:    repo,
+		evBus:   evBus,
 	}
 }
 
-func (s *ScheduleService) GetSchedule(ctx context.Context) (domain.Schedule, error) {
+func (s *ScheduleService) Update(ctx context.Context) error {
+	// updates information in repository
+	// and sends events about updates of schedule to event bus
+	// if there are
+
+	return nil
+}
+
+func (s *ScheduleService) getSchedule(ctx context.Context) (domain.Schedule, error) {
 	xlsx, err := s.fetcher.FetchXLSX(ctx, s.docID)
 	if err != nil {
 		return domain.Schedule{}, fmt.Errorf("can't fetch xlsx: %w", err)
