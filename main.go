@@ -65,19 +65,25 @@ func main() {
 	scheduleUpdateEventBus.Subscribe(botScheduleUpdatesService.HandleScheduleUpdate)
 	scheduleUpdateEventBus.Subscribe(botUpcomingEventsPinService.HandleScheduleUpdate)
 
-	poller := workers.NewSchedulePoller(
+	scheduleWorker := workers.NewScheduleWorker(
 		logger,
 		scheduleService,
 		appCfg.SchedulePollerInterval,
 	)
-	poller.Start()
+	upcomingEventsWorker := workers.NewUpcomingEventsWorker(logger, botUpcomingEventsPinService, appCfg.SchedulePollerInterval)
+
+	scheduleWorker.Start()
+	upcomingEventsWorker.Start()
+
 	// graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 	quitCtx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	poller.Close(quitCtx)
+	scheduleWorker.Close(quitCtx)
+	upcomingEventsWorker.Close(quitCtx)
 
-	main1(docFetcher, appCfg)
 	cancel()
+
+	// main1(docFetcher, appCfg)
 }

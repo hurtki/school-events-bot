@@ -10,7 +10,7 @@ import (
 	"github.com/hurtki/school-events-bot/internal/bot"
 )
 
-type SchedulePoller struct {
+type ScheduleWorker struct {
 	service  *schedule.ScheduleService
 	bot      *bot.Bot
 	interval time.Duration
@@ -21,19 +21,19 @@ type SchedulePoller struct {
 	wg     sync.WaitGroup
 }
 
-func NewSchedulePoller(logger *slog.Logger, service *schedule.ScheduleService, interval time.Duration) *SchedulePoller {
+func NewScheduleWorker(logger *slog.Logger, service *schedule.ScheduleService, interval time.Duration) *ScheduleWorker {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &SchedulePoller{
+	return &ScheduleWorker{
 		service:  service,
 		interval: interval,
-		logger:   logger.With("service", "schedule-poller"),
+		logger:   logger.With("service", "schedule-worker"),
 		ctx:      ctx,
 		cancel:   cancel,
 		wg:       sync.WaitGroup{},
 	}
 }
 
-func (p *SchedulePoller) Close(ctx context.Context) error {
+func (p *ScheduleWorker) Close(ctx context.Context) error {
 	p.cancel()
 	done := make(chan struct{})
 	go func() {
@@ -50,11 +50,11 @@ func (p *SchedulePoller) Close(ctx context.Context) error {
 	}
 }
 
-func (p *SchedulePoller) Start() {
+func (p *ScheduleWorker) Start() {
 	p.wg.Go(p.run)
 }
 
-func (p *SchedulePoller) run() {
+func (p *ScheduleWorker) run() {
 	ticker := time.NewTicker(p.interval)
 	defer ticker.Stop()
 	p.logger.Info("started polling", "interval", p.interval.String())
