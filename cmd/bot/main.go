@@ -18,7 +18,8 @@ import (
 	"github.com/hurtki/school-events-bot/internal/config"
 	"github.com/hurtki/school-events-bot/internal/evbus"
 	"github.com/hurtki/school-events-bot/internal/infrastructure/spreadsheets"
-	repository "github.com/hurtki/school-events-bot/internal/repository/schedule"
+	pinned_message_repo "github.com/hurtki/school-events-bot/internal/repository/pinned_message"
+	schedule_repo "github.com/hurtki/school-events-bot/internal/repository/schedule"
 )
 
 func main() {
@@ -42,7 +43,7 @@ func main() {
 
 	docFetcher := spreadsheets.NewDocsFetcher(http.DefaultClient)
 
-	bot, err := bot.NewBot(botCfg)
+	bot, err := bot.NewBot(botCfg, logger)
 	if err != nil {
 		logger.Error("can't init bot", "err", err)
 		return
@@ -50,7 +51,8 @@ func main() {
 
 	scheduleUpdateEventBus := evbus.NewScheduleUpdateEventBus()
 
-	scheduleRepo := repository.NewFileScheduleRepository(appCfg.JsonScheduleFileRepositoryPath)
+	scheduleRepo := schedule_repo.NewFileScheduleRepository(appCfg.JsonScheduleFileRepositoryPath)
+	pinnedMsgStateRepo := pinned_message_repo.NewJSONPinnedMessageRepo(appCfg.JsonPinnedMessageStateFileRepositoryPath)
 
 	scheduleService := schedule.NewScheduleService(docFetcher, appCfg.SpreadsheetsDocumentID, scheduleRepo, scheduleUpdateEventBus)
 
@@ -58,8 +60,9 @@ func main() {
 
 	botUpcomingEventsPinService := pinned.NewBotUpcomingEventsPinService(
 		logger,
-		nil,
+		pinnedMsgStateRepo,
 		scheduleRepo,
+		bot,
 	)
 
 	scheduleUpdateEventBus.Subscribe(botScheduleUpdatesService.HandleScheduleUpdate)

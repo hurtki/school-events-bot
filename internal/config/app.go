@@ -14,6 +14,9 @@ type AppConfig struct {
 	SpreadsheetsDocumentID string `env:"SCHEDULE_DOCUMENT_ID,required"`
 	// Path where json schedule repository will store file
 	JsonScheduleFileRepositoryPath string `env:"SCHEDULE_FILE_REPOSIOTORY_PATH,required"`
+	// Path where json schedule repository will store file
+	JsonPinnedMessageStateFileRepositoryPath string `env:"PINNED_MESSAGE_STATE_FILE_REPOSIOTORY_PATH,required"`
+
 	// Interval for schedule poller
 	SchedulePollerIntervalStr string `env:"SCHEDULE_POLLER_INTERVAL,required"`
 	SchedulePollerInterval    time.Duration
