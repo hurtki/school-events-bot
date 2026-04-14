@@ -8,7 +8,6 @@ import (
 
 	"github.com/hurtki/school-events-bot/internal/app/schedule"
 	"github.com/hurtki/school-events-bot/internal/bot"
-	"github.com/hurtki/school-events-bot/internal/domain"
 )
 
 type SchedulePoller struct {
@@ -68,43 +67,49 @@ func (p *SchedulePoller) run() {
 			defer cancel()
 
 			p.logger.Info("poll unit started")
-			sc, err := p.service.GetSchedule(ctx)
+			start := time.Now()
+			err := p.service.Update(ctx)
 			if err != nil {
-				p.logger.Error("can't get schedule from service", "err", err)
-				continue
-			}
-			prevSc, err := p.repo.GetLastSchedule(ctx)
-			if err != nil {
-				p.logger.Error("can't get previous schedule", "err", err)
-			}
-			if prevSc == nil {
-				p.logger.Info("previous schedule wasn't saved, writing new")
-				err = p.repo.SaveSchedule(ctx, sc)
-				if err != nil {
-					p.logger.Error("can't save schedule", "err", err)
-				}
-				continue
-			}
-
-			// if we got prevoius and new schedules successfully
-			// we will compare them
-			update := domain.CompareSchedules(*prevSc, sc)
-
-			if update.IsEmpty() {
-				p.logger.Info("nothing changed since last update, not notifying about updates")
+				p.logger.Error("error occured", "err", err, "duration", time.Since(start).String())
 			} else {
-				p.logger.Info("there are new updates", "deleted", len(update.Deleted), "added", len(update.Added))
-				err = p.bot.NotifyAboutUpdate(ctx, update)
-				if err != nil {
-					p.logger.Error("can't notify about update", "err", err)
-				} else {
-					p.logger.Info("notified about new update successfully")
-				}
-				err = p.repo.SaveSchedule(ctx, sc)
-				if err != nil {
-					p.logger.Error("can't save schedule", "err", err)
-				}
+				p.logger.Info("updated shedule service", "duration", time.Since(start).String())
 			}
 		}
 	}
 }
+
+// if err != nil {
+// 	p.logger.Error("can't get schedule from service", "err", err)
+// 	continue
+// }
+// if err != nil {
+// 	p.logger.Error("can't get previous schedule", "err", err)
+// }
+// if prevSc == nil {
+// 	p.logger.Info("previous schedule wasn't saved, writing new")
+// 	err = p.repo.SaveSchedule(ctx, sc)
+// 	if err != nil {
+// 		p.logger.Error("can't save schedule", "err", err)
+// 	}
+// 	continue
+// }
+//
+// // if we got prevoius and new schedules successfully
+// // we will compare them
+// update := domain.CompareSchedules(*prevSc, sc)
+//
+// if update.IsEmpty() {
+// 	p.logger.Info("nothing changed since last update, not notifying about updates")
+// } else {
+// 	p.logger.Info("there are new updates", "deleted", len(update.Deleted), "added", len(update.Added))
+// 	err = p.bot.NotifyAboutUpdate(ctx, update)
+// 	if err != nil {
+// 		p.logger.Error("can't notify about update", "err", err)
+// 	} else {
+// 		p.logger.Info("notified about new update successfully")
+// 	}
+// 	err = p.repo.SaveSchedule(ctx, sc)
+// 	if err != nil {
+// 		p.logger.Error("can't save schedule", "err", err)
+// 	}
+// }

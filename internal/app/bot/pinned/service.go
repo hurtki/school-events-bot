@@ -23,6 +23,18 @@ type BotUpcomingEventsPinService struct {
 	scheduleRepo  ScheduleRepository
 }
 
+func NewBotUpcomingEventsPinService(
+	logger *slog.Logger,
+	pinnedMsgRepo PinnedMessageStateRepo,
+	scheduleRepo ScheduleRepository,
+) *BotUpcomingEventsPinService {
+	return &BotUpcomingEventsPinService{
+		logger:        logger,
+		pinnedMsgRepo: pinnedMsgRepo,
+		scheduleRepo:  scheduleRepo,
+	}
+}
+
 func (s *BotUpcomingEventsPinService) HandleScheduleUpdate(ctx context.Context, update domain.ScheduleUpdate) {
 	// subscription on update events
 }
