@@ -9,6 +9,8 @@ import (
 	"github.com/hurtki/school-events-bot/internal/config"
 	"github.com/hurtki/school-events-bot/internal/domain"
 	"github.com/hurtki/school-events-bot/internal/infrastructure/spreadsheets"
+
+	evbus "github.com/asaskevich/EventBus"
 	"github.com/hurtki/school-events-bot/internal/parser"
 )
 
@@ -101,4 +103,24 @@ func reverse(s []rune) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
+}
+
+func test() {
+	bus := evbus.New()
+	bus.SubscribeAsync("topic:super", superHandler, true)
+	bus.SubscribeAsync("topic:super", superHandler2, false)
+
+	bus.Publish("topic:super", 123)
+
+	bus.WaitAsync()
+}
+
+func superHandler(num int) {
+	time.Sleep(time.Second)
+	fmt.Println("handled num", num)
+}
+
+func superHandler2(num int) {
+	time.Sleep(time.Second)
+	fmt.Println("handled num from handler 2", num)
 }
