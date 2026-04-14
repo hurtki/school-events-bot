@@ -29,17 +29,19 @@ func NewBotUpcomingEventsPinService(
 	scheduleRepo ScheduleRepository,
 ) *BotUpcomingEventsPinService {
 	return &BotUpcomingEventsPinService{
-		logger:        logger,
+		logger:        logger.With("service", "bot-upcoming-events-service"),
 		pinnedMsgRepo: pinnedMsgRepo,
 		scheduleRepo:  scheduleRepo,
 	}
 }
 
 func (s *BotUpcomingEventsPinService) HandleScheduleUpdate(ctx context.Context, update domain.ScheduleUpdate) {
+	s.logger.Info("handled new schedule update")
 	// subscription on update events
 }
 
 func (s *BotUpcomingEventsPinService) Update(ctx context.Context) error {
+	s.logger.Info("updating pin")
 	// is called by worker
 	return nil
 }

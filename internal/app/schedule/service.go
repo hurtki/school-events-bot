@@ -39,27 +39,46 @@ func NewScheduleService(fetcher XLSXScheduleDocumentFetcher, docID string, repo 
 }
 
 func (s *ScheduleService) Update(ctx context.Context) error {
-	// updates information in repository
-	// and sends events about updates of schedule to event bus
-	// if there are
-
-	return nil
-}
-
-func (s *ScheduleService) getSchedule(ctx context.Context) (domain.Schedule, error) {
 	xlsx, err := s.fetcher.FetchXLSX(ctx, s.docID)
 	if err != nil {
-		return domain.Schedule{}, fmt.Errorf("can't fetch xlsx: %w", err)
+		return fmt.Errorf("can't fetch xlsx doc sith fetcher: %w", err)
 	}
-	defer func() {
-		err := xlsx.Close()
-		if err != nil {
-			fmt.Println("can't close xlsx")
-		}
-	}()
-	p, err := parser.NewParser(xlsx, s.docID)
+	defer xlsx.Close()
+
+	prevSc, err := s.repo.GetLastSchedule(ctx)
 	if err != nil {
-		return domain.Schedule{}, fmt.Errorf("can't parse xlsx: %w", err)
+		return fmt.Errorf("can't get last schedule from repo: %w", err)
 	}
-	return p.ParseXLSX()
+
+	pr, err := parser.NewParser(xlsx, s.docID)
+	if err != nil {
+		return fmt.Errorf("can't initialize parser to parse new schedule: %w", err)
+	}
+	newSc, err := pr.ParseXLSX()
+	if err != nil {
+		return fmt.Errorf("can't parse xlsx into schedule: %w", err)
+	}
+
+	if prevSc == nil {
+		err = s.repo.SaveSchedule(ctx, newSc)
+		if err != nil {
+			return fmt.Errorf("can't save new schedule to repo: %w", err)
+		}
+		return nil
+	}
+
+	update := domain.CompareSchedules(*prevSc, newSc)
+	if update.IsEmpty() {
+		return nil
+	}
+
+	err = s.repo.SaveSchedule(ctx, newSc)
+	if err != nil {
+		return fmt.Errorf("can't save new schedule to repo: %w", err)
+	}
+
+	// only publish, if we saved to repo successfully
+	s.evBus.Publish(ctx, update)
+
+	return nil
 }

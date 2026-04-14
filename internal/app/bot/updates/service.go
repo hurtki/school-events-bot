@@ -16,7 +16,7 @@ type BotScheduleUpdatesService struct {
 func NewBotScheduleUpdatesService(logger *slog.Logger, bot *bot.Bot) *BotScheduleUpdatesService {
 	return &BotScheduleUpdatesService{
 		bot:    bot,
-		logger: logger,
+		logger: logger.With("service", "bot-schedule-updates-service"),
 	}
 }
 
