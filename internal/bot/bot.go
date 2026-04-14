@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/hurtki/school-events-bot/internal/config"
-	tele "github.com/tucnak/telebot"
+	tele "gopkg.in/telebot.v4"
 )
 
 type Bot struct {
@@ -29,4 +29,12 @@ func NewBot(cfg config.BotConfig, logger *slog.Logger) (*Bot, error) {
 		cfg:    cfg,
 		logger: logger.With("service", "bot-infra"),
 	}, nil
+}
+
+func (b *Bot) Close() {
+	b.bot.Stop()
+}
+
+func (b *Bot) Start() {
+	go b.bot.Start()
 }

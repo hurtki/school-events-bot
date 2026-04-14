@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/hurtki/school-events-bot/internal/domain"
-	tele "github.com/tucnak/telebot"
+	tele "gopkg.in/telebot.v4"
 )
 
 func (b *Bot) NotifyAboutUpdate(ctx context.Context, update domain.ScheduleUpdate) error {

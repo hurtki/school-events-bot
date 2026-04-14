@@ -18,8 +18,12 @@ type AppConfig struct {
 	JsonPinnedMessageStateFileRepositoryPath string `env:"PINNED_MESSAGE_STATE_FILE_REPOSIOTORY_PATH,required"`
 
 	// Interval for schedule poller
-	SchedulePollerIntervalStr string `env:"SCHEDULE_POLLER_INTERVAL,required"`
-	SchedulePollerInterval    time.Duration
+	ScheduleWorkerIntervalStr string `env:"UPCOMING_EVENTS_WORKER_INTERVAL,required"`
+	ScheduleWorkerInterval    time.Duration
+
+	// Interval for schedule poller
+	UpcomingEventsWorkerIntervalStr string `env:"SCHEDULE_POLLER_INTERVAL,required"`
+	UpcomingEventsWorkerInterval    time.Duration
 }
 
 func LoadAppConfig(src LoadSource) (AppConfig, error) {
@@ -42,11 +46,17 @@ func LoadAppConfig(src LoadSource) (AppConfig, error) {
 		panic("wrong load source option")
 	}
 
-	duration, err := time.ParseDuration(cfg.SchedulePollerIntervalStr)
+	duration, err := time.ParseDuration(cfg.ScheduleWorkerIntervalStr)
 	if err != nil {
 		return cfg, fmt.Errorf("invalid duration: %w", err)
 	}
-	cfg.SchedulePollerInterval = duration
+	cfg.ScheduleWorkerInterval = duration
+
+	duration, err = time.ParseDuration(cfg.UpcomingEventsWorkerIntervalStr)
+	if err != nil {
+		return cfg, fmt.Errorf("invalid duration: %w", err)
+	}
+	cfg.UpcomingEventsWorkerInterval = duration
 
 	return cfg, err
 }

@@ -15,6 +15,7 @@ RUN chmod u+x entry
 EXPOSE 80
 
 FROM alpine:latest
+RUN apk add --no-cache tzdata
 
 COPY --from=build /app/entry .
 

@@ -40,3 +40,9 @@ func (d Date) Compare(other Date) int {
 	}
 	return 0
 }
+
+func (d Date) DaysUntil() int {
+	now := time.Now().Truncate(24 * time.Hour)
+	target := d.T.Truncate(24 * time.Hour)
+	return int(target.Sub(now).Hours() / 24)
+}

@@ -15,8 +15,8 @@ const (
 	// upcomingEventsShowCount defines how many events to include in the summary for every group
 	upcomingEventsShowCount = 3
 	// maxPinnedMessageAge defines the threshold after which a message is considered stale and should be re-sent
-	// maxPinnedMessageAge = 48 * time.Hour
-	maxPinnedMessageAge = time.Second * 90
+	maxPinnedMessageAge = 48 * time.Hour
+	// maxPinnedMessageAge = time.Second * 90
 )
 
 type PinnedMessageStateRepo interface {

@@ -71,12 +71,15 @@ func main() {
 	scheduleWorker := workers.NewScheduleWorker(
 		logger,
 		scheduleService,
-		appCfg.SchedulePollerInterval,
+		appCfg.ScheduleWorkerInterval,
 	)
-	upcomingEventsWorker := workers.NewUpcomingEventsWorker(logger, botUpcomingEventsPinService, appCfg.SchedulePollerInterval)
+	upcomingEventsWorker := workers.NewUpcomingEventsWorker(logger, botUpcomingEventsPinService, appCfg.UpcomingEventsWorkerInterval)
+
+	bot.DeletePinsHandle()
 
 	scheduleWorker.Start()
 	upcomingEventsWorker.Start()
+	bot.Start()
 
 	// graceful shutdown
 	quit := make(chan os.Signal, 1)
@@ -85,6 +88,7 @@ func main() {
 	quitCtx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	scheduleWorker.Close(quitCtx)
 	upcomingEventsWorker.Close(quitCtx)
+	bot.Close()
 
 	cancel()
 
