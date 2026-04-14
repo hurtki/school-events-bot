@@ -18,11 +18,11 @@ type AppConfig struct {
 	JsonPinnedMessageStateFileRepositoryPath string `env:"PINNED_MESSAGE_STATE_FILE_REPOSIOTORY_PATH,required"`
 
 	// Interval for schedule poller
-	ScheduleWorkerIntervalStr string `env:"UPCOMING_EVENTS_WORKER_INTERVAL,required"`
+	ScheduleWorkerIntervalStr string `env:"SCHEDULE_WORKER_INTERVAL,required"`
 	ScheduleWorkerInterval    time.Duration
 
 	// Interval for schedule poller
-	UpcomingEventsWorkerIntervalStr string `env:"SCHEDULE_POLLER_INTERVAL,required"`
+	UpcomingEventsWorkerIntervalStr string `env:"UPCOMING_EVENTS_WORKER_INTERVAL,required"`
 	UpcomingEventsWorkerInterval    time.Duration
 }
 
