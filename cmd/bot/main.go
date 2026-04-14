@@ -23,7 +23,7 @@ import (
 )
 
 func main() {
-	envSource := config.EnvFileSource
+	envSource := config.EnviromentVariablesSource
 
 	appCfg, err := config.LoadAppConfig(envSource)
 	if err != nil {
