@@ -48,13 +48,14 @@ func (b *Bot) UpdateMessageWithEventsSummary(msgID int, summary domain.UpcomingE
 	return nil
 }
 
-func (b *Bot) DeleteMessageWithSummary(msgID int) error {
+func (b *Bot) DeleteMessage(msgID int) error {
 	err := b.bot.Delete(&tele.Message{ID: msgID, Chat: &tele.Chat{ID: b.cfg.UpdatesChannel}})
 	if err != nil {
 		return fmt.Errorf("can't delete message: %w", err)
 	}
 	return nil
 }
+
 func (b *Bot) formatSummary(summary domain.UpcomingEventsSummary) string {
 	var sb strings.Builder
 

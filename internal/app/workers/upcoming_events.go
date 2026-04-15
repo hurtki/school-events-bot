@@ -57,7 +57,7 @@ func (w *UpcomingEventsWorker) Start() {
 func (w *UpcomingEventsWorker) run() {
 	ticker := time.NewTicker(w.interval)
 	defer ticker.Stop()
-	w.logger.Info("started polling", "interval", w.interval.String())
+	w.logger.Info("started", "interval", w.interval.String())
 	for {
 		select {
 		case <-w.ctx.Done():

@@ -57,7 +57,7 @@ func (p *ScheduleWorker) Start() {
 func (p *ScheduleWorker) run() {
 	ticker := time.NewTicker(p.interval)
 	defer ticker.Stop()
-	p.logger.Info("started polling", "interval", p.interval.String())
+	p.logger.Info("started", "interval", p.interval.String())
 	for {
 		select {
 		case <-p.ctx.Done():
@@ -77,39 +77,3 @@ func (p *ScheduleWorker) run() {
 		}
 	}
 }
-
-// if err != nil {
-// 	p.logger.Error("can't get schedule from service", "err", err)
-// 	continue
-// }
-// if err != nil {
-// 	p.logger.Error("can't get previous schedule", "err", err)
-// }
-// if prevSc == nil {
-// 	p.logger.Info("previous schedule wasn't saved, writing new")
-// 	err = p.repo.SaveSchedule(ctx, sc)
-// 	if err != nil {
-// 		p.logger.Error("can't save schedule", "err", err)
-// 	}
-// 	continue
-// }
-//
-// // if we got prevoius and new schedules successfully
-// // we will compare them
-// update := domain.CompareSchedules(*prevSc, sc)
-//
-// if update.IsEmpty() {
-// 	p.logger.Info("nothing changed since last update, not notifying about updates")
-// } else {
-// 	p.logger.Info("there are new updates", "deleted", len(update.Deleted), "added", len(update.Added))
-// 	err = p.bot.NotifyAboutUpdate(ctx, update)
-// 	if err != nil {
-// 		p.logger.Error("can't notify about update", "err", err)
-// 	} else {
-// 		p.logger.Info("notified about new update successfully")
-// 	}
-// 	err = p.repo.SaveSchedule(ctx, sc)
-// 	if err != nil {
-// 		p.logger.Error("can't save schedule", "err", err)
-// 	}
-// }

@@ -21,7 +21,7 @@ func NewBotScheduleUpdatesService(logger *slog.Logger, bot *bot.Bot) *BotSchedul
 }
 
 func (s *BotScheduleUpdatesService) HandleScheduleUpdate(ctx context.Context, update domain.ScheduleUpdate) {
-	s.logger.Debug("handling schedule update")
+	s.logger.Info("received update, handling", "new-events-count", len(update.Added), "delete-events-count", len(update.Deleted))
 	err := s.bot.NotifyAboutUpdate(ctx, update)
 	if err != nil {
 		s.logger.Error("error occured, when notifying using bot", "err", err)

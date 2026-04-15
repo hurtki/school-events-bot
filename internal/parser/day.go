@@ -35,7 +35,7 @@ func parseDayIntoEvents(
 	var text string
 	var et domain.EventType
 
-	// "saves" accumulated data (if there is)
+	// "saves" accumulated data ( if there is )
 	// if new type is other than was before
 	flushIfType := func(incoming domain.EventType) {
 		if text != "" && et != incoming {
@@ -46,7 +46,7 @@ func parseDayIntoEvents(
 		}
 	}
 
-	// "saves" accumulated data ( if there is) strictly
+	// "saves" accumulated data ( if there is ) strictly
 	flush := func() {
 		if text != "" {
 			if event, err := domain.NewEvent(date, group, text, et, daySrcURL); err == nil {

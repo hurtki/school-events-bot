@@ -77,7 +77,7 @@ func (s *BotUpcomingEventsPinService) Update(ctx context.Context) error {
 	if shouldCreateNew {
 		if exists {
 			// Clean up the old message if it exists. Error is ignored as it might be already deleted.
-			err = s.bot.DeleteMessageWithSummary(msgInfo.LastMessageID)
+			err = s.bot.DeleteMessage(msgInfo.LastMessageID)
 			if err != nil {
 				s.logger.Warn("can't delete message", "err", err)
 			}
@@ -101,6 +101,7 @@ func (s *BotUpcomingEventsPinService) HandleScheduleUpdate(ctx context.Context, 
 		s.logger.Debug("received empty schedule update, skipping")
 		return
 	}
+	s.logger.Info("received update, handling", "new-events-count", len(update.Added), "delete-events-count", len(update.Deleted))
 
 	if err := s.Update(ctx); err != nil {
 		s.logger.Error("failed to process schedule update", "err", err)
