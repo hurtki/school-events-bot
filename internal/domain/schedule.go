@@ -2,7 +2,6 @@ package domain
 
 import (
 	"slices"
-	"time"
 )
 
 type Schedule struct {
@@ -27,7 +26,7 @@ func (s Schedule) GetUpcomingEventsSummary(first int, priorityTypes ...EventType
 	events := make(map[Group][]Event)
 
 	for _, e := range s.Events {
-		if e.Date.T.Before(time.Now()) {
+		if e.Date.DaysUntil() < 0 {
 			continue
 		}
 		events[e.Group] = append(events[e.Group], e)

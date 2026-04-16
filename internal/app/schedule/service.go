@@ -67,17 +67,18 @@ func (s *ScheduleService) Update(ctx context.Context) error {
 		return nil
 	}
 
-	update := domain.CompareSchedules(*prevSc, newSc)
-	if update.IsEmpty() {
-		return nil
-	}
-
+	// saving to repo parsed schedule
 	err = s.repo.SaveSchedule(ctx, newSc)
 	if err != nil {
 		return fmt.Errorf("can't save new schedule to repo: %w", err)
 	}
 
-	// only publish, if we saved to repo successfully
+	update := domain.NewScheduleUpdate(*prevSc, newSc)
+	if update.IsEmpty() {
+		return nil
+	}
+
+	// only publish, if we saved to repo successfully and update is not empty
 	s.evBus.Publish(ctx, update)
 
 	return nil

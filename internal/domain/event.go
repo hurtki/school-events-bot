@@ -44,3 +44,12 @@ func NewEvent(date Date, gr Group, text string, et EventType, sourceURL string) 
 		SourceURL: sourceURL,
 	}, nil
 }
+
+// Hash is used to compare two events, if they are identical
+func (e Event) Hash() string {
+	return fmt.Sprintf("%s%s%s%s",
+		e.Date.String(),
+		e.Type.String(),
+		e.Group.String(),
+		e.Text)
+}

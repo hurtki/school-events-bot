@@ -27,6 +27,22 @@ func NewDate(d string) (Date, error) {
 	return Date{T: parsedTime}, nil
 }
 
+// func NewTodaysDate() Date {
+// 	now := time.Now()
+// 	d, err := NewDate(
+// 		fmt.Sprintf(
+// 			"%d.%d.%d",
+// 			now.Day(),
+// 			now.Month(),
+// 			now.Year(),
+// 		),
+// 	)
+// 	if err != nil {
+// 		panic("unexpected error from new date builder")
+// 	}
+// 	return d
+// }
+
 func (d Date) String() string {
 	return d.T.Format(dateLayout)
 }

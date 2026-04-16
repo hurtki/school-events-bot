@@ -54,8 +54,10 @@ func NewBotUpcomingEventsPinService(
 func (s *BotUpcomingEventsPinService) Update(ctx context.Context) error {
 	// 1. Fetch latest schedule data
 	schedule, err := s.scheduleRepo.GetLastSchedule(ctx)
-	if err != nil || schedule == nil {
-		return fmt.Errorf("failed to fetch last schedule: %w", err)
+	if err != nil {
+		return fmt.Errorf("failed to get last schedule from repo: %w", err)
+	} else if schedule == nil {
+		return fmt.Errorf("there is no last schedule in repo")
 	}
 
 	// 2. Generate content summary based on specific event types
