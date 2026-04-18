@@ -35,6 +35,76 @@ func TestParseDayIntoEvents(t *testing.T) {
 				},
 			},
 		},
+		{
+			dayInput: `
+מגן פיזיקה
+
+מגן פיזיקה
+			`,
+			groupInput:     domain.TwelfthGradeGroup,
+			daySrcURLInput: "test_url",
+
+			expectedEvents: []domain.Event{
+				{
+					Date: domain.Date{},
+
+					Type:  domain.ProtectionBagrutTestEvent,
+					Group: domain.TwelfthGradeGroup,
+					Text:  "מגן פיזיקה\n",
+
+					SourceURL: "test_url",
+				},
+				{
+					Date: domain.Date{},
+
+					Type:  domain.ProtectionBagrutTestEvent,
+					Group: domain.TwelfthGradeGroup,
+					Text:  "מגן פיזיקה\n",
+
+					SourceURL: "test_url",
+				},
+			},
+		},
+		{
+			dayInput: `
+מגן פיזיקה
+מגן 9:00
+			`,
+			groupInput:     domain.TwelfthGradeGroup,
+			daySrcURLInput: "test_url",
+
+			expectedEvents: []domain.Event{
+				{
+					Date: domain.Date{},
+
+					Type:  domain.ProtectionBagrutTestEvent,
+					Group: domain.TwelfthGradeGroup,
+					Text:  "מגן פיזיקה\nמגן 9:00\n",
+
+					SourceURL: "test_url",
+				},
+			},
+		},
+		{
+			dayInput: `
+מגן פיזיקה
+9:00
+			`,
+			groupInput:     domain.TwelfthGradeGroup,
+			daySrcURLInput: "test_url",
+
+			expectedEvents: []domain.Event{
+				{
+					Date: domain.Date{},
+
+					Type:  domain.ProtectionBagrutTestEvent,
+					Group: domain.TwelfthGradeGroup,
+					Text:  "מגן פיזיקה\n9:00\n",
+
+					SourceURL: "test_url",
+				},
+			},
+		},
 	}
 
 	for _, c := range cases {
