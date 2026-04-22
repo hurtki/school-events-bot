@@ -37,7 +37,7 @@ func (b *Bot) NotifyAboutUpdate(ctx context.Context, update domain.ScheduleUpdat
 
 	// Added Events
 	if len(update.Added) > 0 {
-		sb.WriteString("<b>🆕 אירועים חדשים שנוספו:</b>\n")
+		sb.WriteString("\u200F<b>🆕 אירועים חדשים שנוספו:</b>\n")
 		for _, e := range update.Added {
 			groupLabel := getGroupLabel(e.Group)
 
@@ -46,7 +46,7 @@ func (b *Bot) NotifyAboutUpdate(ctx context.Context, update domain.ScheduleUpdat
 				date = fmt.Sprintf("<a href=\"%s\">%s</a>", e.SourceURL, date)
 			}
 
-			text := fmt.Sprintf("<b>%s</b>", e.Text)
+			text := fmt.Sprintf("\u200F<b>%s</b>", e.Text)
 
 			fmt.Fprintf(&sb, "• %s | %s\n%s", groupLabel, date, text)
 		}

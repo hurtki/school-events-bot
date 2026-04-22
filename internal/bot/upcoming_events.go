@@ -71,8 +71,13 @@ func (b *Bot) formatSummary(summary domain.UpcomingEventsSummary) string {
 
 	sb.WriteString("<b>📅 אירועים חשובים קרובים</b>\n\n")
 
+	availableGroups := 0
+
 	for _, g := range groups {
-		events := summary.Events[g.group]
+		events, ok := summary.Events[g.group]
+		if !ok {
+			continue
+		}
 		fmt.Fprintf(&sb, "<b>%s</b>\n", g.label)
 		if len(events) == 0 {
 			sb.WriteString("— אין אירועים\n")
@@ -80,21 +85,29 @@ func (b *Bot) formatSummary(summary domain.UpcomingEventsSummary) string {
 			for _, e := range events {
 				daysUntilEvent := e.Date.DaysUntil()
 				date := ""
+				emoji := ""
 				switch daysUntilEvent {
 				case 0:
+					emoji = "❗️"
 					date = "היום"
 				case 1:
+					emoji = "❗️"
 					date = "מחר"
 				default:
 					date = fmt.Sprintf("%d ימים [%s]", daysUntilEvent, e.Date.String())
 				}
 
 				if e.SourceURL != "" {
-					date = fmt.Sprintf("<a href=\"%s\">%s</a>", e.SourceURL, date)
+					date = fmt.Sprintf("<a href=\"%s\">%s</a>%s", e.SourceURL, date, emoji)
 				}
 				fmt.Fprintf(&sb, "\u200F%s\n<b>%s</b>", date, e.Text)
 			}
 		}
+		sb.WriteString("\n")
+		availableGroups++
+	}
+	if availableGroups == 0 {
+		sb.WriteString("אין אירועים\n")
 		sb.WriteString("\n")
 	}
 
