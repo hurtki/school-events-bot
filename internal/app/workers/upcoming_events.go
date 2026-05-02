@@ -64,11 +64,11 @@ func (w *UpcomingEventsWorker) run() {
 			return
 		case <-ticker.C:
 			ctx, cancel := context.WithTimeout(w.ctx, time.Second*10)
-			defer cancel()
 
 			w.logger.Info("poll unit started")
 			start := time.Now()
 			err := w.service.Update(ctx)
+			cancel()
 			if err != nil {
 				w.logger.Error("error occured", "err", err, "duration", time.Since(start).String())
 			} else {

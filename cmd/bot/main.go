@@ -17,6 +17,7 @@ import (
 	"github.com/hurtki/school-events-bot/internal/bot"
 	"github.com/hurtki/school-events-bot/internal/config"
 	"github.com/hurtki/school-events-bot/internal/evbus"
+	"github.com/hurtki/school-events-bot/internal/infrastructure/ai"
 	"github.com/hurtki/school-events-bot/internal/infrastructure/spreadsheets"
 	pinned_message_repo "github.com/hurtki/school-events-bot/internal/repository/pinned_message"
 	schedule_repo "github.com/hurtki/school-events-bot/internal/repository/schedule"
@@ -43,7 +44,18 @@ func main() {
 
 	docFetcher := spreadsheets.NewDocsFetcher(http.DefaultClient)
 
-	bot, err := bot.NewBot(botCfg, logger)
+	var summaryAI interface {
+		Text(ctx context.Context, prompt string) (string, error)
+	}
+	geminiAI, err := ai.NewGeminiAI(appCfg.GeminiAPIKey, appCfg.GeminiModel)
+	if err != nil {
+		logger.Warn("can't initialize Gemini AI, updates will use basic format", "err", err)
+		summaryAI = ai.NewNoopGeminiAI()
+	} else {
+		summaryAI = geminiAI
+	}
+
+	bot, err := bot.NewBot(botCfg, summaryAI, logger)
 	if err != nil {
 		logger.Error("can't init bot", "err", err)
 		return

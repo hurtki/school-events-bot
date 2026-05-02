@@ -24,6 +24,10 @@ type AppConfig struct {
 	// Interval for schedule poller
 	UpcomingEventsWorkerIntervalStr string `env:"UPCOMING_EVENTS_WORKER_INTERVAL,required"`
 	UpcomingEventsWorkerInterval    time.Duration
+
+	// Optional Gemini AI config for smart update summaries
+	GeminiAPIKey string `env:"GEMINI_API_KEY"`
+	GeminiModel  string `env:"GEMINI_MODEL"`
 }
 
 func LoadAppConfig(src LoadSource) (AppConfig, error) {

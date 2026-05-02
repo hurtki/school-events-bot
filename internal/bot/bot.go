@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"context"
 	"log/slog"
 	"time"
 
@@ -8,14 +9,18 @@ import (
 	tele "gopkg.in/telebot.v4"
 )
 
+type summaryAI interface {
+	Text(ctx context.Context, prompt string) (string, error)
+}
+
 type Bot struct {
 	bot    *tele.Bot
 	logger *slog.Logger
-
-	cfg config.BotConfig
+	cfg    config.BotConfig
+	ai     summaryAI
 }
 
-func NewBot(cfg config.BotConfig, logger *slog.Logger) (*Bot, error) {
+func NewBot(cfg config.BotConfig, ai summaryAI, logger *slog.Logger) (*Bot, error) {
 	set := tele.Settings{
 		Token:  cfg.TelegramBotToken,
 		Poller: &tele.LongPoller{Timeout: time.Second * 10},
@@ -28,6 +33,7 @@ func NewBot(cfg config.BotConfig, logger *slog.Logger) (*Bot, error) {
 		bot:    b,
 		cfg:    cfg,
 		logger: logger.With("service", "bot-infra"),
+		ai:     ai,
 	}, nil
 }
 

@@ -2,125 +2,144 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"slices"
+	"log/slog"
+	"os"
 	"time"
 
+	"github.com/hurtki/school-events-bot/internal/bot"
 	"github.com/hurtki/school-events-bot/internal/config"
 	"github.com/hurtki/school-events-bot/internal/domain"
-	"github.com/hurtki/school-events-bot/internal/infrastructure/spreadsheets"
-
-	evbus "github.com/asaskevich/EventBus"
-	"github.com/hurtki/school-events-bot/internal/parser"
+	"github.com/hurtki/school-events-bot/internal/infrastructure/ai"
 )
 
-func main1(fetcher *spreadsheets.DocsFetcher, cfg config.AppConfig) {
+func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	ctx := context.Background()
 
-	xlsx, err := fetcher.FetchXLSX(ctx, cfg.SpreadsheetsDocumentID)
-	defer func() {
-		if err := xlsx.Close(); err != nil {
-			fmt.Println("coulnd't close xlsx doc")
-		}
-	}()
-	p, _ := parser.NewParser(xlsx, cfg.SpreadsheetsDocumentID)
-	sc, err := p.ParseXLSX()
+	logger.Info("loading config")
+
+	botCfg, err := config.LoadBotConfig(config.EnvFileSource)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("can't load bot config", "err", err)
 		return
 	}
-	fmt.Printf("Scanned %d events\n", len(sc.Events))
+	appCfg, err := config.LoadAppConfig(config.EnvFileSource)
+	if err != nil {
+		logger.Error("can't load app config", "err", err)
+		return
+	}
+	logger.Info("config loaded")
 
-	start := time.Now()
-	slices.SortFunc(sc.Events, func(a, b domain.Event) int {
-		return a.Date.Compare(b.Date)
-	})
-	fmt.Println("sorted in", time.Since(start).String())
-	for _, ev := range sc.Events {
-		if ev.Group != domain.TenthGradeGroup {
-			continue
+	var summaryAI interface {
+		Text(ctx context.Context, prompt string) (string, error)
+	}
+	geminiAI, err := ai.NewGeminiAI(appCfg.GeminiAPIKey, appCfg.GeminiModel)
+	if err != nil {
+		logger.Warn("Gemini unavailable, falling back to basic format", "err", err)
+		summaryAI = ai.NewNoopGeminiAI()
+	} else {
+		logger.Info("Gemini AI initialised", "model", appCfg.GeminiModel)
+		summaryAI = geminiAI
+	}
+
+	logger.Info("creating bot")
+	b, err := bot.NewBot(botCfg, summaryAI, logger)
+	if err != nil {
+		logger.Error("can't create bot", "err", err)
+		return
+	}
+	logger.Info("bot created")
+
+	mustDate := func(s string) domain.Date {
+		d, err := domain.NewDate(s)
+		if err != nil {
+			panic(err)
 		}
-		// text := ""
-		// if hasHebrew(ev.Text) {
-		// 	text = reverseStringKeepLines(ev.Text)
-		// } else {
-		// 	text = ev.Text
-		// }
-
-		// fmt.Printf("[%s] [%s] [%s] \n%ssource link: %s\n",
-		// 	ev.Date.String(),
-		// 	ev.Group.String(),
-		// 	ev.Type.String(),
-		// 	text,
-		// 	ev.SourceURL,
-		// )
+		return d
 	}
 
-	upcomingEvents := sc.GetUpcomingEventsSummary(5, domain.BagrutTestEvent, domain.ProtectionBagrutTestEvent)
-	for gr, evs := range upcomingEvents.Events {
-		fmt.Printf("========= group: %s =========\n", gr.String())
-		for _, ev := range evs {
-			text := ""
-			if hasHebrew(ev.Text) {
-				text = reverseStringKeepLines(ev.Text)
-			} else {
-				text = ev.Text
-			}
-			fmt.Printf("[%s] [%s] [%s] \n%s",
-				ev.Date.String(),
-				ev.Group.String(),
-				ev.Type.String(),
-				text,
-			)
-		}
+	todayStr := time.Now().Format("2.1.2006")
+	tomorrowStr := time.Now().AddDate(0, 0, 1).Format("2.1.2006")
+
+	update := domain.ScheduleUpdate{
+		Added: []domain.Event{
+			// Clarification: time slot added to existing event
+			{
+				Date: mustDate("23.4.2026"), Type: domain.ProtectionBagrutTestEvent,
+				Group: domain.TwelfthGradeGroup, Text: "מגן לשון עולים ה,ו 08:00-13:00",
+				SourceURL: "https://docs.google.com/spreadsheets/d/1WAqZExNwrM9w2p3IbOkS6ZMosKioh66h/edit#gid=1710319946&range=M319",
+			},
+			// Clarification: multi-line, teacher+time added at top
+			{
+				Date: mustDate("20.4.2026"), Type: domain.PreparationEvent,
+				Group:     domain.CollegeGroup,
+				Text:      "תגבור ניסים 8:00-10:30\nתכן מכני יד1 יד2 1.08-\nתגבור אנה 8:00-10:30 יג 1יג2 1.09-\nתגבור דביר 10:30-13:00 יד1 יד2 1.01-",
+				SourceURL: "https://docs.google.com/spreadsheets/d/1WAqZExNwrM9w2p3IbOkS6ZMosKioh66h/edit#gid=898691425&range=J307",
+			},
+			// Pure addition
+			{
+				Date: mustDate("10.5.2026"), Type: domain.BagrutTestEvent,
+				Group:     domain.TenthGradeGroup,
+				Text:      "בגרות מתמטיקה 5 יח' — כיתות י1, י2",
+				SourceURL: "https://docs.google.com/spreadsheets/d/1WAqZExNwrM9w2p3IbOkS6ZMosKioh66h/edit#gid=111111&range=B5",
+			},
+			// Rescheduled: same event moved from 1.5.2026 to 8.5.2026
+			{
+				Date: mustDate("8.5.2026"), Type: domain.BagrutTestEvent,
+				Group:     domain.EleventhGradeGroup,
+				Text:      "בגרות אנגלית — כיתות יא1, יא2, יא3",
+				SourceURL: "https://docs.google.com/spreadsheets/d/1WAqZExNwrM9w2p3IbOkS6ZMosKioh66h/edit#gid=123456&range=A1",
+			},
+			// Today's event
+			{
+				Date:      mustDate(todayStr),
+				Type:      domain.ProtectionBagrutTestEvent,
+				Group:     domain.TwelfthGradeGroup,
+				Text:      "מגן היסטוריה 09:00-12:00",
+				SourceURL: "https://docs.google.com/spreadsheets/d/1WAqZExNwrM9w2p3IbOkS6ZMosKioh66h/edit#gid=222222&range=C8",
+			},
+			// Tomorrow's event
+			{
+				Date:      mustDate(tomorrowStr),
+				Type:      domain.BagrutTestEvent,
+				Group:     domain.TenthGradeGroup,
+				Text:      "בגרות ספרות 08:00-11:00",
+				SourceURL: "https://docs.google.com/spreadsheets/d/1WAqZExNwrM9w2p3IbOkS6ZMosKioh66h/edit#gid=333333&range=D12",
+			},
+		},
+		Deleted: []domain.Event{
+			// Paired with first added (clarification)
+			{
+				Date: mustDate("23.4.2026"), Type: domain.ProtectionBagrutTestEvent,
+				Group: domain.TwelfthGradeGroup, Text: "מגן לשון עולים ה,ו",
+			},
+			// Paired with second added (clarification)
+			{
+				Date: mustDate("20.4.2026"), Type: domain.PreparationEvent,
+				Group: domain.CollegeGroup,
+				Text:  "כן מכני יד1 יד2 1.08-\nתגבור אנה 8:00-10:30 יג 1יג2 1.09-\nתגבור דביר 10:30-13:00 יד1 יד2 1.01-",
+			},
+			// Pure deletion
+			{
+				Date: mustDate("15.5.2026"), Type: domain.ProtectionBagrutTestEvent,
+				Group: domain.EleventhGradeGroup, Text: "מגן ביולוגיה",
+			},
+			// Rescheduled: old date of the moved event
+			{
+				Date: mustDate("1.5.2026"), Type: domain.BagrutTestEvent,
+				Group: domain.EleventhGradeGroup, Text: "בגרות אנגלית — כיתות יא1, יא2, יא3",
+			},
+		},
 	}
 
-}
+	logger.Info("sending test notification",
+		"added", len(update.Added),
+		"deleted", len(update.Deleted),
+	)
 
-func hasHebrew(s string) bool {
-	for _, r := range s {
-		if r >= 0x0590 && r <= 0x05FF {
-			return true
-		}
+	if err := b.NotifyAboutUpdate(ctx, update); err != nil {
+		logger.Error("NotifyAboutUpdate failed", "err", err)
+		return
 	}
-	return false
-}
-
-func reverseStringKeepLines(s string) string {
-	lines := []rune(s)
-
-	start := 0
-	for i := 0; i <= len(lines); i++ {
-		if i == len(lines) || lines[i] == '\n' {
-			reverse(lines[start:i])
-			start = i + 1
-		}
-	}
-	return string(lines)
-}
-
-func reverse(s []rune) {
-	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
-		s[i], s[j] = s[j], s[i]
-	}
-}
-
-func test() {
-	bus := evbus.New()
-	bus.SubscribeAsync("topic:super", superHandler, true)
-	bus.SubscribeAsync("topic:super", superHandler2, false)
-
-	bus.Publish("topic:super", 123)
-
-	bus.WaitAsync()
-}
-
-func superHandler(num int) {
-	time.Sleep(time.Second)
-	fmt.Println("handled num", num)
-}
-
-func superHandler2(num int) {
-	time.Sleep(time.Second)
-	fmt.Println("handled num from handler 2", num)
+	logger.Info("notification sent successfully")
 }

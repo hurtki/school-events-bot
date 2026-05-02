@@ -63,12 +63,12 @@ func (p *ScheduleWorker) run() {
 		case <-p.ctx.Done():
 			return
 		case <-ticker.C:
-			ctx, cancel := context.WithTimeout(p.ctx, time.Second*10)
-			defer cancel()
+			ctx, cancel := context.WithTimeout(p.ctx, time.Second*90)
 
 			p.logger.Info("poll unit started")
 			start := time.Now()
 			err := p.service.Update(ctx)
+			cancel()
 			if err != nil {
 				p.logger.Error("error occured", "err", err, "duration", time.Since(start).String())
 			} else {
