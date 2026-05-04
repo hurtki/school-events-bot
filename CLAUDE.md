@@ -63,3 +63,17 @@ All wiring happens in `cmd/bot/main.go`. Application-layer services (`internal/a
 ### Persistence
 
 Both repositories (`repository/schedule`, `repository/pinned_message`) are JSON-file-backed. The file paths are supplied via env vars and mounted as a Docker volume (`schedule-storage`) so state survives container restarts.
+
+## Agent skills
+
+### Issue tracker
+
+Not used for this project. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default canonical label strings. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout — `CONTEXT.md` + `docs/adr/` at repo root. See `docs/agents/domain.md`.

@@ -14,9 +14,9 @@ func Format(s *Summary, today, tomorrow string) string {
 	sb.WriteString("<b>🔔 עדכון במערכת!</b>")
 
 	if len(s.Clarifications) > 0 {
-		sb.WriteString("\n\n<b>📌 הבהרות:</b>")
+		sb.WriteString("\n\n<b>📌 הבהרות:</b>\n")
 		for _, e := range s.Clarifications {
-			sb.WriteString("\n• ")
+			sb.WriteString("• ")
 			sb.WriteString(groupLabel(e.Group))
 			sb.WriteString(" | ")
 			sb.WriteString(dateLabel(e.Date, today, tomorrow, e.SourceURL))
@@ -31,13 +31,13 @@ func Format(s *Summary, today, tomorrow string) string {
 	}
 
 	if len(s.Rescheduled) > 0 {
-		sb.WriteString("\n\n<b>📅 שינוי תאריך:</b>")
+		sb.WriteString("\n\n<b>📅 שינוי תאריך:</b>\n")
 		for _, r := range s.Rescheduled {
-			sb.WriteString("\n• ")
+			sb.WriteString("• ")
 			sb.WriteString(groupLabel(r.Group))
-			sb.WriteString(" | <s>")
+			sb.WriteString(" |")
 			sb.WriteString(r.OldDate)
-			sb.WriteString("</s> ")
+			sb.WriteString("←")
 			sb.WriteString(dateLabel(r.NewDate, today, tomorrow, r.SourceURL))
 			sb.WriteString("\n")
 			sb.WriteString(r.Text)
@@ -45,9 +45,9 @@ func Format(s *Summary, today, tomorrow string) string {
 	}
 
 	if len(s.Changes) > 0 {
-		sb.WriteString("\n\n<b>✏️ שינויים:</b>")
+		sb.WriteString("\n\n<b>✏️ שינויים:</b>\n")
 		for _, c := range s.Changes {
-			sb.WriteString("\n• ")
+			sb.WriteString("• ")
 			sb.WriteString(groupLabel(c.Group))
 			sb.WriteString(" | ")
 			sb.WriteString(dateLabel(c.Date, today, tomorrow, c.SourceURL))
@@ -57,9 +57,9 @@ func Format(s *Summary, today, tomorrow string) string {
 	}
 
 	if len(s.Added) > 0 {
-		sb.WriteString("\n\n<b>🆕 אירועים חדשים שנוספו:</b>")
+		sb.WriteString("\n\n<b>🆕 אירועים חדשים שנוספו:</b>\n")
 		for _, e := range s.Added {
-			sb.WriteString("\n• ")
+			sb.WriteString("• ")
 			sb.WriteString(groupLabel(e.Group))
 			sb.WriteString(" | ")
 			sb.WriteString(dateLabel(e.Date, today, tomorrow, e.SourceURL))
@@ -69,9 +69,9 @@ func Format(s *Summary, today, tomorrow string) string {
 	}
 
 	if len(s.Deleted) > 0 {
-		sb.WriteString("\n\n<b>❌ אירועים שנמחקו:</b>")
+		sb.WriteString("\n\n<b>❌ אירועים שנמחקו:</b>\n")
 		for _, e := range s.Deleted {
-			sb.WriteString("\n• ")
+			sb.WriteString("• ")
 			sb.WriteString(groupLabel(e.Group))
 			sb.WriteString(" | ")
 			sb.WriteString(dateLabel(e.Date, today, tomorrow, ""))

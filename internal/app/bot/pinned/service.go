@@ -13,7 +13,7 @@ import (
 
 const (
 	// upcomingEventsShowCount defines how many events to include in the summary for every group
-	upcomingEventsShowCount = 3
+	upcomingEventsShowCount = 10
 	// maxPinnedMessageAge defines the threshold after which a message is considered stale and should be re-sent
 	maxPinnedMessageAge = 47*time.Hour + (time.Minute * 30)
 	// maxPinnedMessageAge = time.Second * 90
