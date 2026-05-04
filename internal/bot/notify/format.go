@@ -168,6 +168,7 @@ func groupLabel(g string) string {
 
 func addRTLMarks(s string) string {
 	lines := strings.Split(s, "\n")
+
 	for i, line := range lines {
 		if !strings.HasPrefix(line, rtlMark) {
 			lines[i] = rtlMark + line

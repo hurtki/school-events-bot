@@ -9,6 +9,8 @@ import (
 	tele "gopkg.in/telebot.v4"
 )
 
+const rtlMark = "‏"
+
 func (b *Bot) SendEventsSummaryAndPin(summary domain.UpcomingEventsSummary) (msgID int, err error) {
 
 	msg, err := b.bot.Send(&tele.Chat{ID: b.cfg.UpdatesChannel},
@@ -116,5 +118,16 @@ func (b *Bot) formatSummary(summary domain.UpcomingEventsSummary) string {
 
 	fmt.Fprintf(&sb, "<i>עודכן: %02d:%02d:%02d</i>", now.Hour(), now.Minute(), now.Second())
 
-	return sb.String()
+	return addRTLMarks(sb.String())
+}
+
+func addRTLMarks(s string) string {
+	lines := strings.Split(s, "\n")
+
+	for i, line := range lines {
+		if !strings.HasPrefix(line, rtlMark) {
+			lines[i] = rtlMark + line
+		}
+	}
+	return strings.Join(lines, "\n")
 }
