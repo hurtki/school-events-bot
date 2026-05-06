@@ -30,7 +30,7 @@ docker compose up -d
 
 Copy `.env.example` to `.env`. Required vars: `SCHEDULE_DOCUMENT_ID`, `TELEGRAM_BOT_TOKEN`, `UPDATES_TELEGRAM_CHANNEL_ID`, `SCHEDULE_FILE_REPOSIOTORY_PATH`, `PINNED_MESSAGE_STATE_FILE_REPOSIOTORY_PATH`, `SCHEDULE_WORKER_INTERVAL`, `UPCOMING_EVENTS_WORKER_INTERVAL`.
 
-Optional AI vars (if absent, update notifications fall back to a basic template): `GEMINI_API_KEY`, `GEMINI_MODEL` (e.g. `gemini-2.5-flash`).
+Optional vars: `UPCOMING_EVENTS_SHOW_COUNT` (default `5`) — how many upcoming events to show per group in the pinned message. `GEMINI_API_KEY`, `GEMINI_MODEL` (e.g. `gemini-2.5-flash`) — if absent, update notifications fall back to a basic template.
 
 ## Architecture
 
@@ -40,7 +40,7 @@ The bot serves an Israeli school. The schedule source is a Google Spreadsheets X
 
 **ScheduleWorker** (polling interval from env) — fetches the XLSX, parses it, diffs against the persisted schedule, saves the new schedule, then publishes a `domain.ScheduleUpdate` to the event bus if anything changed.
 
-**UpcomingEventsWorker** (polling interval from env) — independently refreshes the pinned Telegram message summarising the next N Bagrut/Magen events per group. The pinned message is re-sent from scratch if it is older than ~47.5 h; otherwise it is edited in place.
+**UpcomingEventsWorker** (polling interval from env) — independently refreshes the pinned Telegram message summarising the next N upcoming events per group (N = `UPCOMING_EVENTS_SHOW_COUNT`, default 5), sorted by date with no type filtering. The pinned message is re-sent from scratch if it is older than ~47.5 h; otherwise it is edited in place.
 
 ### Event bus
 
@@ -63,3 +63,17 @@ All wiring happens in `cmd/bot/main.go`. Application-layer services (`internal/a
 ### Persistence
 
 Both repositories (`repository/schedule`, `repository/pinned_message`) are JSON-file-backed. The file paths are supplied via env vars and mounted as a Docker volume (`schedule-storage`) so state survives container restarts.
+
+## Agent skills
+
+### Issue tracker
+
+Not used for this project. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default canonical label strings. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout — `CONTEXT.md` + `docs/adr/` at repo root. See `docs/agents/domain.md`.

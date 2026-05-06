@@ -9,8 +9,6 @@ import (
 	tele "gopkg.in/telebot.v4"
 )
 
-const rtlMark = "‏"
-
 func (b *Bot) SendEventsSummaryAndPin(summary domain.UpcomingEventsSummary) (msgID int, err error) {
 
 	msg, err := b.bot.Send(&tele.Chat{ID: b.cfg.UpdatesChannel},
@@ -65,13 +63,13 @@ func (b *Bot) formatSummary(summary domain.UpcomingEventsSummary) string {
 		label string
 		group domain.Group
 	}{
-		{"📗 שכבת י'", domain.TenthGradeGroup},
-		{"📘 שכבת י\"א", domain.EleventhGradeGroup},
-		{"📙 שכבת י\"ב", domain.TwelfthGradeGroup},
-		{"🎓 מכללה", domain.CollegeGroup},
+		{"\u200E📗 שכבת י", domain.TenthGradeGroup},
+		{"\u200E📘 שכבת י\"א", domain.EleventhGradeGroup},
+		{"\u200E📙 שכבת י\"ב", domain.TwelfthGradeGroup},
+		{"\u200E🎓 מכללה", domain.CollegeGroup},
 	}
 
-	sb.WriteString("<b>📅 אירועים חשובים קרובים</b>\n\n")
+	sb.WriteString("<b>\u200E📅 אירועים חשובים קרובים</b>\n\n")
 
 	availableGroups := 0
 
@@ -80,10 +78,11 @@ func (b *Bot) formatSummary(summary domain.UpcomingEventsSummary) string {
 		if !ok {
 			continue
 		}
-		fmt.Fprintf(&sb, "<b>%s</b>\n", g.label)
+		fmt.Fprintf(&sb, "<b>\u200E%s</b>", g.label)
 		if len(events) == 0 {
-			sb.WriteString("— אין אירועים\n")
+			sb.WriteString("\n— אין אירועים\n")
 		} else {
+			sb.WriteString("<blockquote expandable>")
 			for _, e := range events {
 				daysUntilEvent := e.Date.DaysUntil()
 				date := ""
@@ -93,7 +92,7 @@ func (b *Bot) formatSummary(summary domain.UpcomingEventsSummary) string {
 					emoji = "❗️"
 					date = "היום"
 				case 1:
-					emoji = "❗️"
+					emoji = "⚠️"
 					date = "מחר"
 				default:
 					date = fmt.Sprintf("%d ימים [%s]", daysUntilEvent, e.Date.String())
@@ -102,8 +101,10 @@ func (b *Bot) formatSummary(summary domain.UpcomingEventsSummary) string {
 				if e.SourceURL != "" {
 					date = fmt.Sprintf("<a href=\"%s\">%s</a>%s", e.SourceURL, date, emoji)
 				}
-				fmt.Fprintf(&sb, "\u200F%s\n<b>%s</b>", date, e.Text)
+				fmt.Fprintf(&sb, "%s\n<b>%s</b>", date, e.Text)
 			}
+			sb.WriteString("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀")
+			sb.WriteString("</blockquote>")
 		}
 		sb.WriteString("\n")
 		availableGroups++
@@ -116,18 +117,7 @@ func (b *Bot) formatSummary(summary domain.UpcomingEventsSummary) string {
 	loc, _ := time.LoadLocation("Asia/Jerusalem")
 	now := time.Now().In(loc)
 
-	fmt.Fprintf(&sb, "<i>עודכן: %02d:%02d:%02d</i>", now.Hour(), now.Minute(), now.Second())
+	fmt.Fprintf(&sb, "<i>\u200Eעודכן: %02d:%02d:%02d</i>", now.Hour(), now.Minute(), now.Second())
 
-	return addRTLMarks(sb.String())
-}
-
-func addRTLMarks(s string) string {
-	lines := strings.Split(s, "\n")
-
-	for i, line := range lines {
-		if !strings.HasPrefix(line, rtlMark) {
-			lines[i] = rtlMark + line
-		}
-	}
-	return strings.Join(lines, "\n")
+	return sb.String()
 }

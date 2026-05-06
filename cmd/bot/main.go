@@ -75,6 +75,7 @@ func main() {
 		pinnedMsgStateRepo,
 		scheduleRepo,
 		bot,
+		appCfg.UpcomingEventsShowCount,
 	)
 
 	scheduleUpdateEventBus.Subscribe(botScheduleUpdatesService.HandleScheduleUpdate)
