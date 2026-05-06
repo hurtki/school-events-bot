@@ -25,6 +25,9 @@ type AppConfig struct {
 	UpcomingEventsWorkerIntervalStr string `env:"UPCOMING_EVENTS_WORKER_INTERVAL,required"`
 	UpcomingEventsWorkerInterval    time.Duration
 
+	// How many upcoming events to show per group in the pinned message
+	UpcomingEventsShowCount int `env:"UPCOMING_EVENTS_SHOW_COUNT,default=5"`
+
 	// Optional Gemini AI config for smart update summaries
 	GeminiAPIKey string `env:"GEMINI_API_KEY"`
 	GeminiModel  string `env:"GEMINI_MODEL"`

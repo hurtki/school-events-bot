@@ -12,11 +12,8 @@ import (
 )
 
 const (
-	// upcomingEventsShowCount defines how many events to include in the summary for every group
-	upcomingEventsShowCount = 10
 	// maxPinnedMessageAge defines the threshold after which a message is considered stale and should be re-sent
 	maxPinnedMessageAge = 47*time.Hour + (time.Minute * 30)
-	// maxPinnedMessageAge = time.Second * 90
 )
 
 type PinnedMessageStateRepo interface {
@@ -33,6 +30,7 @@ type BotUpcomingEventsPinService struct {
 	pinnedMsgRepo PinnedMessageStateRepo
 	scheduleRepo  ScheduleRepository
 	bot           *bot.Bot
+	showCount     int
 }
 
 func NewBotUpcomingEventsPinService(
@@ -40,12 +38,14 @@ func NewBotUpcomingEventsPinService(
 	pinnedMsgRepo PinnedMessageStateRepo,
 	scheduleRepo ScheduleRepository,
 	bot *bot.Bot,
+	showCount int,
 ) *BotUpcomingEventsPinService {
 	return &BotUpcomingEventsPinService{
 		logger:        logger.With("service", "bot-upcoming-events-service"),
 		pinnedMsgRepo: pinnedMsgRepo,
 		scheduleRepo:  scheduleRepo,
 		bot:           bot,
+		showCount:     showCount,
 	}
 }
 
@@ -60,12 +60,8 @@ func (s *BotUpcomingEventsPinService) Update(ctx context.Context) error {
 		return fmt.Errorf("there is no last schedule in repo")
 	}
 
-	// 2. Generate content summary based on specific event types
-	summary := schedule.GetUpcomingEventsSummary(
-		upcomingEventsShowCount,
-		domain.BagrutTestEvent,
-		domain.ProtectionBagrutTestEvent,
-	)
+	// 2. Generate upcoming events summary
+	summary := schedule.GetUpcomingEventsSummary(s.showCount)
 
 	// 3. Retrieve current state of the pinned message
 	msgInfo, exists, err := s.pinnedMsgRepo.GetLastPinnedMessage(ctx)
