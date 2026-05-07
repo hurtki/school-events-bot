@@ -101,7 +101,14 @@ func (b *Bot) formatSummary(summary domain.UpcomingEventsSummary) string {
 				if e.SourceURL != "" {
 					date = fmt.Sprintf("<a href=\"%s\">%s</a>%s", e.SourceURL, date, emoji)
 				}
-				fmt.Fprintf(&sb, "%s\n<b>%s</b>", date, e.Text)
+				var typeEmoji string
+				switch e.Type {
+				case domain.BagrutTestEvent:
+					typeEmoji = "✏️ "
+				case domain.ProtectionBagrutTestEvent:
+					typeEmoji = "🛡️ "
+				}
+				fmt.Fprintf(&sb, "%s\n%s%s", date, typeEmoji, e.Text)
 			}
 			sb.WriteString("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀")
 			sb.WriteString("</blockquote>")
