@@ -1,0 +1,11 @@
+services:
+  main:
+    image: hurtki/school-events-bot:${IMAGE_TAG:-latest}
+    container_name: school-events-notifier
+    restart: always
+    env_file: .env                       # generated on the server from GitHub Environment secrets
+    volumes:
+      - schedule-storage:/var/www/storage/
+volumes:
+  schedule-storage:
+    external: true

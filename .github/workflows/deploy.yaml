@@ -1,0 +1,112 @@
+name: ci-cd
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (e.g. sha-<commit> or latest)"
+        default: latest
+
+concurrency:
+  group: deploy-school-events-bot
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.8"
+          cache: true
+      - run: go vet ./...
+      - run: go test ./...
+
+  build-push:
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: hurtki
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            hurtki/school-events-bot:latest
+            hurtki/school-events-bot:sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build-push
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy prod compose to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: docker-compose.prod.yaml
+          target: ~/deploy/school-events-bot/
+
+      - name: Deploy on server
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          IMAGE_TAG: ${{ github.event.inputs.image_tag || format('sha-{0}', github.sha) }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: IMAGE_TAG
+          script: |
+            set -e
+            cd ~/deploy/school-events-bot
+            cat > .env <<EOF
+            SCHEDULE_DOCUMENT_ID=${{ vars.SCHEDULE_DOCUMENT_ID }}
+            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+            UPDATES_TELEGRAM_CHANNEL_ID=${{ vars.UPDATES_TELEGRAM_CHANNEL_ID }}
+            SCHEDULE_FILE_REPOSIOTORY_PATH=${{ vars.SCHEDULE_FILE_REPOSIOTORY_PATH }}
+            PINNED_MESSAGE_STATE_FILE_REPOSIOTORY_PATH=${{ vars.PINNED_MESSAGE_STATE_FILE_REPOSIOTORY_PATH }}
+            SCHEDULE_WORKER_INTERVAL=${{ vars.SCHEDULE_WORKER_INTERVAL }}
+            UPCOMING_EVENTS_WORKER_INTERVAL=${{ vars.UPCOMING_EVENTS_WORKER_INTERVAL }}
+            UPCOMING_EVENTS_SHOW_COUNT=${{ vars.UPCOMING_EVENTS_SHOW_COUNT }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            GEMINI_MODEL=${{ vars.GEMINI_MODEL }}
+            EOF
+            chmod 600 .env
+            export IMAGE_TAG
+            docker compose -f docker-compose.prod.yaml pull
+            docker compose -f docker-compose.prod.yaml up -d
+            # health-check
+            sleep 15
+            st=$(docker inspect -f '{{.State.Status}}' school-events-notifier)
+            if [ "$st" != running ]; then
+              docker logs --tail 50 school-events-notifier || true
+              echo "container not running (status=$st)"; exit 1
+            fi
+            if docker logs --tail 80 school-events-notifier 2>&1 | grep -iE 'panic:|level=(ERROR|FATAL)'; then
+              echo "bot unhealthy after deploy"; exit 1
+            fi
+            # keep last 3 images, drop older
+            docker images --format '{{.CreatedAt}}\t{{.ID}}' hurtki/school-events-bot \
+              | sort -r | awk 'NR>3{print $2}' | xargs -r docker rmi -f || true
+            echo "deploy OK ($IMAGE_TAG)"
