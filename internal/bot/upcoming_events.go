@@ -107,6 +107,8 @@ func (b *Bot) formatSummary(summary domain.UpcomingEventsSummary) string {
 					typeEmoji = "✏️ "
 				case domain.ProtectionBagrutTestEvent:
 					typeEmoji = "🛡️ "
+				case domain.ExamEvent:
+					typeEmoji = "🖋️"
 				}
 				fmt.Fprintf(&sb, "%s\n%s%s", date, typeEmoji, e.Text)
 			}

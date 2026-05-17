@@ -105,8 +105,29 @@ func TestParseDayIntoEvents(t *testing.T) {
 				},
 			},
 		},
+		{
+			dayInput: `
+מבחן
+history
+			`,
+			groupInput:     domain.TwelfthGradeGroup,
+			daySrcURLInput: "test_url",
+
+			expectedEvents: []domain.Event{
+				{
+					Date: domain.Date{},
+
+					Type:  domain.ExamEvent,
+					Group: domain.TwelfthGradeGroup,
+					Text:  "מבחן\nhistory\n",
+
+					SourceURL: "test_url",
+				},
+			},
+		},
 	}
 
+	// מבחן
 	for _, c := range cases {
 		evs := parseDayIntoEvents(
 			c.dayInput,

@@ -10,6 +10,7 @@ const (
 	preparation          = "תגבור"
 	protectionBagrutTest = "מגן"
 	bagrutTest           = "בגרות"
+	mivhanTest           = "מבחן"
 )
 
 var (
@@ -72,6 +73,11 @@ func parseDayIntoEvents(
 			flushIfType(domain.BagrutTestEvent)
 			text += line + "\n"
 			et = domain.BagrutTestEvent
+
+		case strings.Contains(line, mivhanTest):
+			flushIfType(domain.ExamEvent)
+			text += line + "\n"
+			et = domain.ExamEvent
 
 		default:
 			if strings.TrimSpace(line) == "" {

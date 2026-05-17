@@ -8,6 +8,7 @@ const (
 	PreparationEvent = iota
 	ProtectionBagrutTestEvent
 	BagrutTestEvent
+	ExamEvent
 )
 
 func (et EventType) String() string {
@@ -18,6 +19,8 @@ func (et EventType) String() string {
 		return "Magen"
 	case BagrutTestEvent:
 		return "Bagrut"
+	case ExamEvent:
+		return "Mivhan"
 	}
 	return "Undefined event"
 }
@@ -33,7 +36,7 @@ type Event struct {
 }
 
 func NewEvent(date Date, gr Group, text string, et EventType, sourceURL string) (Event, error) {
-	if et > 2 {
+	if et > 3 {
 		return Event{}, fmt.Errorf("not existing event type")
 	}
 	return Event{
